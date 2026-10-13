@@ -17,6 +17,12 @@ async def chat_with_assistant(payload: ChatRequest):
     if payload.scanId:
         report = await ScanRepository.get_scan(payload.scanId)
 
+    if not report:
+        # Ground the chat in the user's latest completed assessment
+        recent_scans = await ScanRepository.list_recent_scans(limit=1)
+        if recent_scans:
+            report = recent_scans[0]
+
     reply, quick_replies = await gemini_service.chat_response(
         report=report,
         user_message=payload.message,

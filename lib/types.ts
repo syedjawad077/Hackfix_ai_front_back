@@ -49,9 +49,10 @@ export interface ScanLogEntry {
 export interface ScanReport {
   id: string;
   targetUrl: string;
-  hasSourceZip: boolean;
+  hasSourceZip?: boolean;
   zipFileName?: string;
   zipFileSize?: number;
+  githubRepo?: string;
   ownershipVerified: boolean;
   stepper: ScanStepperState;
   logs: ScanLogEntry[];

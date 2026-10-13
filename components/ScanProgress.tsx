@@ -1,12 +1,13 @@
 "use client";
 
 import React from "react";
-import { CheckCircle2, Circle, Globe, FileArchive, ArrowRight } from "lucide-react";
+import { CheckCircle2, Circle, Globe, FileArchive, ArrowRight, Github } from "lucide-react";
 import { ScanStepperState, StepState, ScanLogEntry } from "@/lib/types";
 import { TechnicalDetails } from "./TechnicalDetails";
 
 interface ScanProgressProps {
   targetUrl: string;
+  githubRepo?: string;
   zipFileName?: string;
   stepper: ScanStepperState;
   currentStepName: string;
@@ -45,6 +46,7 @@ const STEPS: StepConfig[] = [
 
 export function ScanProgress({
   targetUrl,
+  githubRepo,
   zipFileName,
   stepper,
   currentStepName,
@@ -104,6 +106,12 @@ export function ScanProgress({
               {targetUrl}
             </h2>
           </div>
+          {githubRepo && (
+            <div className="flex items-center gap-1.5 text-xs text-[#51627A] mt-1.5">
+              <Github className="w-3.5 h-3.5 text-[#0F2A5C]" />
+              <span>Linked GitHub repository: {githubRepo}</span>
+            </div>
+          )}
           {zipFileName && (
             <div className="flex items-center gap-1.5 text-xs text-[#51627A] mt-1.5">
               <FileArchive className="w-3.5 h-3.5 text-[#0F2A5C]" />

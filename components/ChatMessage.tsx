@@ -7,6 +7,7 @@ import { ScanStepper } from "./ScanStepper";
 import { ScanLog } from "./ScanLog";
 import { ReportSummary } from "./ReportSummary";
 import { QuickReplies } from "./QuickReplies";
+import { MarkdownRenderer } from "./MarkdownRenderer";
 
 interface ChatMessageProps {
   message: ChatMessageType;
@@ -67,9 +68,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           </span>
         </div>
 
-        {/* Text body */}
-        <div className="text-sm text-[#0B1F3A] leading-relaxed whitespace-pre-wrap">
-          {message.text}
+        {/* Text body with full markdown rendering for headings, code blocks, bold, lists */}
+        <div className="text-sm text-[#0B1F3A] leading-relaxed">
+          <MarkdownRenderer content={message.text} />
         </div>
 
         {/* Embedded Scan Pipeline Components if report is attached */}

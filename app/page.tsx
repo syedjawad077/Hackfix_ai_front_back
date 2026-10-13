@@ -30,6 +30,8 @@ export default function HomePage() {
     setUrlInput,
     messageInput,
     setMessageInput,
+    githubRepo,
+    setGithubRepo,
     attachedZip,
     setAttachedZip,
     isScanning,
@@ -48,6 +50,7 @@ export default function HomePage() {
     handleSelectSession,
     handleRenameSession,
     handleDeleteSession,
+    handleStartScan,
     handleComposerSubmit,
     handleConfirmOwnership,
     handleSendChatMessage,
@@ -202,17 +205,13 @@ export default function HomePage() {
             onUrlChange={setUrlInput}
             message={messageInput}
             onMessageChange={setMessageInput}
-            attachedFile={attachedZip}
-            onAttachFile={(file) => {
-              setAttachedZip(file);
-              addToast(`Attached ${file.name}`, "success");
-            }}
-            onRemoveFile={() => {
-              setAttachedZip(null);
-              addToast("Removed attached project ZIP", "info");
-            }}
+            githubRepo={githubRepo}
+            onGithubRepoChange={setGithubRepo}
+            onStartScan={handleStartScan}
             onSubmit={handleComposerSubmit}
             isScanning={isScanning}
+            activeScanId={activeSession?.activeScanId}
+            scannedUrl={activeSession?.targetUrl}
             ownershipVerified={activeSession?.ownershipVerified}
             onValidationError={(err) => addToast(err, "error")}
           />

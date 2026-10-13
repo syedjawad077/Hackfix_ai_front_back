@@ -22,6 +22,7 @@ async def create_scan(request: Request, background_tasks: BackgroundTasks):
 
     # Handle both multipart/form-data and application/json
     content_type = request.headers.get("content-type", "")
+    github_repo = None
     if "multipart/form-data" in content_type:
         form = await request.form()
         target_url = str(form.get("target_url") or "").strip()
@@ -29,12 +30,18 @@ async def create_scan(request: Request, background_tasks: BackgroundTasks):
         prompt_text = form.get("prompt")
         if prompt_text:
             prompt_text = str(prompt_text)
+        raw_gh = form.get("github_repo") or form.get("githubRepo")
+        if raw_gh:
+            github_repo = str(raw_gh).strip()
     else:
         try:
             body = await request.json()
             target_url = str(body.get("target_url") or body.get("targetUrl") or "").strip()
             ownership_verified = bool(body.get("ownership_verified") or body.get("ownershipVerified"))
             prompt_text = body.get("prompt")
+            raw_gh = body.get("github_repo") or body.get("githubRepo")
+            if raw_gh:
+                github_repo = str(raw_gh).strip()
         except Exception:
             raise HTTPException(status_code=400, detail="Invalid request body.")
 
@@ -56,6 +63,7 @@ async def create_scan(request: Request, background_tasks: BackgroundTasks):
         id=scan_id,
         targetUrl=normalized,
         hasSourceZip=False,
+        githubRepo=github_repo,
         ownershipVerified=True,
         stepper=ScanStepperState(
             find=StepState.PENDING,

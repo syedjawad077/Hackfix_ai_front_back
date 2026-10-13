@@ -17,6 +17,7 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
   const [urlInput, setUrlInput] = useState<string>("https://demo-app.hackfix-labs.dev");
   const [messageInput, setMessageInput] = useState<string>("");
   const [attachedZip, setAttachedZip] = useState<File | null>(null);
+  const [githubRepo, setGithubRepo] = useState<string>("");
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [retestingId, setRetestingId] = useState<string | null>(null);
 
@@ -113,6 +114,7 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
     setUrlInput("");
     setMessageInput("");
     setAttachedZip(null);
+    setGithubRepo("");
     onToast("Started a new scan session", "info");
   }, [onToast]);
 
@@ -173,6 +175,7 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
     try {
       const report = await apiClient.startScan({
         targetUrl,
+        githubRepo: githubRepo.trim() || undefined,
         zipFile: attachedZip,
         ownershipVerified: true,
         prompt: promptText,
@@ -182,13 +185,14 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
         id: `msg-assistant-${Date.now()}`,
         sender: "assistant",
         text: `I completed the security assessment for **${targetUrl}**. ${
-          attachedZip
-            ? `Because you uploaded **${attachedZip.name}**, I reviewed your project's source code along with live endpoint probes.`
+          githubRepo.trim()
+            ? `Because you linked GitHub repo **${githubRepo.trim()}**, I correlated repository architecture with active security probes.`
             : "Live endpoints and passive security headers were evaluated."
         }\n\nHere are the findings and proof of concept validations.`,
         timestamp: getCurrentTimestamp(),
         scanReport: report,
         quickReplies: [
+          "What are the biggest threats?",
           "Explain this finding simply",
           "Show me the fix",
           "What should I fix first?",
@@ -220,27 +224,41 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
     }
   };
 
-  // Submit action from composer
+  // Explicit start scan action
+  const handleStartScan = (targetUrlOverride?: string) => {
+    const target = (targetUrlOverride || urlInput).trim();
+    if (!target) {
+      onToast("Please enter a website URL to scan (e.g. https://your-site.com)", "warning");
+      return;
+    }
+    if (!isValidUrl(target)) {
+      onToast("Please enter a valid website URL starting with https:// or http://", "error");
+      return;
+    }
+    if (!activeSession?.ownershipVerified) {
+      setPendingScanUrl(target);
+      setOwnershipModalOpen(true);
+      return;
+    }
+    executeScan(target);
+  };
+
+  // Submit action from composer (Enter or Send button)
   const handleComposerSubmit = () => {
-    const trimmedUrl = urlInput.trim();
     const trimmedMessage = messageInput.trim();
+    const trimmedUrl = urlInput.trim();
 
-    // Case 1: If URL is provided and valid, verify ownership first if not verified
-    if (trimmedUrl && isValidUrl(trimmedUrl)) {
-      if (!activeSession?.ownershipVerified) {
-        setPendingScanUrl(trimmedUrl);
-        setOwnershipModalOpen(true);
-        return;
-      }
-
-      // Already verified
-      executeScan(trimmedUrl, trimmedMessage || undefined);
+    // Priority 1: If user typed a message, ALWAYS SEND AS CHAT MESSAGE!
+    // Never trigger a slow website re-scan when the user is chatting with AI.
+    if (trimmedMessage) {
+      handleSendChatMessage(trimmedMessage);
       return;
     }
 
-    // Case 2: Only chat message provided (normal AI conversation)
-    if (trimmedMessage) {
-      handleSendChatMessage(trimmedMessage);
+    // Priority 2: If message is empty, but URL is provided, start the scan
+    if (trimmedUrl && isValidUrl(trimmedUrl)) {
+      handleStartScan(trimmedUrl);
+      return;
     }
   };
 
@@ -379,6 +397,8 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
     setMessageInput,
     attachedZip,
     setAttachedZip,
+    githubRepo,
+    setGithubRepo,
     isScanning,
     retestingId,
     ownershipModalOpen,
@@ -395,6 +415,7 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
     handleSelectSession,
     handleRenameSession,
     handleDeleteSession,
+    handleStartScan,
     handleComposerSubmit,
     handleConfirmOwnership,
     handleSendChatMessage,

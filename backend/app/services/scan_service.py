@@ -77,6 +77,13 @@ class ScanService:
             level="info",
             message="FIND: Starting passive HTTP, TLS, and configuration analysis..."
         ))
+        if report.githubRepo:
+            report.logs.append(ScanLogEntry(
+                id=f"log-{len(report.logs)+1}",
+                timestamp=cls._now_str(),
+                level="info",
+                message=f"FIND: Correlating target with GitHub source repository: {report.githubRepo}"
+            ))
         await ScanRepository.update_scan(report)
 
         try:
@@ -193,7 +200,10 @@ class ScanService:
         await ScanRepository.update_scan(report)
 
         # Enhance with Gemini if available
-        report.findings = await gemini_service.enhance_finding_explanations(report.findings)
+        report.findings = await gemini_service.enhance_finding_explanations(
+            report.findings,
+            github_repo=report.githubRepo
+        )
         report.stepper.fix = StepState.DONE
 
         # 5. Stage: VERIFY

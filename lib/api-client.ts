@@ -3,6 +3,7 @@ import { initialFindings, sampleScanLogs, defaultScanReport, samplePastScans } f
 
 export interface ScanPayload {
   targetUrl: string;
+  githubRepo?: string | null;
   zipFile?: File | null;
   ownershipVerified: boolean;
   prompt?: string;
@@ -70,6 +71,7 @@ export const apiClient = {
           target_url: payload.targetUrl,
           ownership_verified: payload.ownershipVerified,
           prompt: payload.prompt,
+          github_repo: payload.githubRepo || undefined,
         }),
       });
 
@@ -172,6 +174,7 @@ export const apiClient = {
       hasSourceZip: Boolean(payload.zipFile),
       zipFileName: payload.zipFile?.name,
       zipFileSize: payload.zipFile?.size,
+      githubRepo: payload.githubRepo || undefined,
       ownershipVerified: payload.ownershipVerified,
       stepper: {
         find: "done",
@@ -185,9 +188,9 @@ export const apiClient = {
       findings: clonedFindings,
       status: "completed",
       summaryMarkdown: `Security check complete for **${payload.targetUrl}**. We identified **4 problems** (1 Critical, 1 High, 1 Medium, 1 Low). Overall security score is **78/100**.\n\n${
-        payload.zipFile
-          ? `Because you uploaded **${payload.zipFile.name}**, we reviewed your project's code files alongside active website checks.`
-          : `Live website endpoints and security headers were tested. Upload a project .zip anytime for deep code-level fixes.`
+        payload.githubRepo
+          ? `Because you linked GitHub repo **${payload.githubRepo}**, we correlated repository architecture with active security probes.`
+          : `Live website endpoints and security headers were tested. Link a GitHub repository anytime for deep code-level fixes.`
       }`,
       createdAt: `Today, ${nowTime}`,
     };

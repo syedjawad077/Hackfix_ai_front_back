@@ -13,9 +13,8 @@ class Settings:
     VERSION: str = "1.0.0"
     API_PREFIX: str = "/api"
 
-    # Gemini AI configuration
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "").strip()
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-3.8-flash").strip()
     GEMINI_ENABLED: bool = os.getenv("GEMINI_ENABLED", "true").lower() in ("true", "1", "yes")
 
     # Storage

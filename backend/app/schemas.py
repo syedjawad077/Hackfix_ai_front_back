@@ -90,6 +90,7 @@ class ScanReport(BaseModel):
     hasSourceZip: bool = False
     zipFileName: Optional[str] = None
     zipFileSize: Optional[int] = None
+    githubRepo: Optional[str] = None
     ownershipVerified: bool = True
     stepper: ScanStepperState = Field(default_factory=ScanStepperState)
     logs: List[ScanLogEntry] = Field(default_factory=list)
@@ -106,6 +107,7 @@ class ScanCreateRequest(BaseModel):
     target_url: str
     ownership_verified: bool
     prompt: Optional[str] = None
+    github_repo: Optional[str] = None
 
 class ChatRequest(BaseModel):
     sessionId: Optional[str] = None
