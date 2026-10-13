@@ -2,12 +2,13 @@
 
 import React, { useState } from "react";
 import { Copy, Check, RotateCw, Shield } from "lucide-react";
-import { ChatMessage as ChatMessageType, Finding, ScanReport } from "@/lib/types";
+import { ChatMessage as ChatMessageType, Finding, ScanReport, AttackSimulation } from "@/lib/types";
 import { ScanStepper } from "./ScanStepper";
 import { ScanLog } from "./ScanLog";
 import { ReportSummary } from "./ReportSummary";
 import { QuickReplies } from "./QuickReplies";
 import { MarkdownRenderer } from "./MarkdownRenderer";
+import { AttackSimulationCard } from "./AttackSimulationCard";
 
 interface ChatMessageProps {
   message: ChatMessageType;
@@ -16,6 +17,7 @@ interface ChatMessageProps {
   onRegenerate?: () => void;
   onRetestFinding?: (findingId: string) => void;
   retestingId?: string | null;
+  onOpenSimulation?: (sim: AttackSimulation) => void;
   onToast: (msg: string, type?: "info" | "success" | "warning" | "error") => void;
 }
 
@@ -26,6 +28,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   onRegenerate,
   onRetestFinding,
   retestingId,
+  onOpenSimulation,
   onToast,
 }) => {
   const [copied, setCopied] = useState(false);
@@ -83,6 +86,16 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
               onRetestFinding={onRetestFinding || (() => {})}
               retestingId={retestingId}
               onToast={onToast}
+            />
+          </div>
+        )}
+
+        {/* Embedded Executive Threat Simulation if present */}
+        {message.simulation && (
+          <div className="mt-3">
+            <AttackSimulationCard
+              simulation={message.simulation}
+              onOpenModal={() => onOpenSimulation?.(message.simulation!)}
             />
           </div>
         )}

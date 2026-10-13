@@ -18,7 +18,9 @@ export interface Finding {
   endpoint?: string;
   file?: string;
   explanation: string; // "What this means" (1 to 2 simple sentences)
+  impact?: string;
   proof: string; // "How we proved it" (short, safe description)
+
   recommendedFix: CodeDiff; // "How to fix it" (simple steps + code block with before/after and copy button)
   fixSteps?: string[];
   status: FindingStatus;
@@ -77,12 +79,41 @@ export interface PastScanSummary {
   report: ScanReport;
 }
 
+export interface AttackSimulationStage {
+  stepNumber: number;
+  phase: string;
+  title: string;
+  narrative: string;
+  affectedAsset: string;
+  businessImpact: string;
+  mitigation: string;
+  status: 'simulated_risk' | 'blocked_by_patch';
+}
+
+export interface AttackSimulationPayload {
+  scanId?: string;
+  targetUrl?: string;
+  githubRepo?: string;
+  findings?: Finding[];
+}
+
+export interface AttackSimulation {
+  scanId: string;
+  targetUrl: string;
+  riskLevel: 'Critical' | 'High' | 'Moderate' | 'Low' | string;
+  executiveSummary: string;
+  stages: AttackSimulationStage[];
+  boardroomTakeaway: string;
+}
+
+
 export interface ChatMessage {
   id: string;
   sender: 'user' | 'assistant';
   text: string;
   timestamp: string;
   scanReport?: ScanReport;
+  simulation?: AttackSimulation;
   quickReplies?: string[];
   codeBlocks?: { language: string; code: string; title?: string }[];
   contextFindingId?: string;

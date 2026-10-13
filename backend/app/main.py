@@ -6,6 +6,7 @@ from app.storage.database import init_db
 from app.api.scan import router as scan_router
 from app.api.chat import router as chat_router
 from app.api.reports import router as reports_router
+from app.api.simulation import router as simulation_router
 from app.schemas import HealthResponse
 
 @asynccontextmanager
@@ -42,6 +43,7 @@ app.add_middleware(
 app.include_router(scan_router)
 app.include_router(chat_router)
 app.include_router(reports_router)
+app.include_router(simulation_router)
 
 @app.get("/", tags=["root"])
 async def root():

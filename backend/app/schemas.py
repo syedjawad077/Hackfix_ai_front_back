@@ -45,8 +45,10 @@ class Finding(BaseModel):
     id: str
     title: str
     technicalName: Optional[str] = None
-    owasp_category: str
-    severity: Severity
+    owasp_category: str = "A05:2021-Security Misconfiguration"
+    category: Optional[str] = None
+    severity: Severity = Severity.MEDIUM
+
     confidence: Confidence = Confidence.HIGH
     evidence_status: EvidenceStatus = EvidenceStatus.CONFIRMED_OBSERVATION
     score: float = Field(default=5.0, description="Estimated severity score 0.0-10.0 (internal estimate, not official CVSS)")
@@ -134,4 +136,28 @@ class HealthResponse(BaseModel):
     gemini_enabled: bool
     zap_enabled: bool
     db_connected: bool
+
+class AttackSimulationStage(BaseModel):
+    stepNumber: int
+    phase: str  # "1. External Reconnaissance", "2. Vector Exploitation", "3. Executive Business Impact", "4. Defensive Shield"
+    title: str
+    narrative: str
+    affectedAsset: str
+    businessImpact: str
+    mitigation: str
+    status: str = "simulated_risk"  # "simulated_risk" or "blocked_by_patch"
+
+class AttackSimulationRequest(BaseModel):
+    scanId: Optional[str] = None
+    targetUrl: Optional[str] = None
+    githubRepo: Optional[str] = None
+    findings: Optional[List[Finding]] = None
+
+class AttackSimulationResponse(BaseModel):
+    scanId: str
+    targetUrl: str
+    riskLevel: str  # "Critical", "High", "Moderate", "Low"
+    executiveSummary: str
+    stages: List[AttackSimulationStage]
+    boardroomTakeaway: str
 

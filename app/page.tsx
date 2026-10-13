@@ -13,6 +13,7 @@ import { Composer } from "@/components/Composer";
 import { DropOverlay } from "@/components/DropOverlay";
 import { OwnershipModal } from "@/components/OwnershipModal";
 import { SettingsModal } from "@/components/SettingsModal";
+import { AttackSimulationModal } from "@/components/AttackSimulationModal";
 import { Toast } from "@/components/Toast";
 import { EmptyState } from "@/components/EmptyState";
 import { useToast } from "@/hooks/useToast";
@@ -36,6 +37,12 @@ export default function HomePage() {
     setAttachedZip,
     isScanning,
     retestingId,
+    isSimulating,
+    simulationModalOpen,
+    setSimulationModalOpen,
+    currentSimulation,
+    setCurrentSimulation,
+    handleRunSimulation,
     ownershipModalOpen,
     setOwnershipModalOpen,
     pendingScanUrl,
@@ -98,6 +105,14 @@ export default function HomePage() {
           setFastApiUrl(url);
           addToast("FastAPI backend endpoint configuration saved", "success");
         }}
+      />
+
+      {/* Executive Attack Path Simulation Modal */}
+      <AttackSimulationModal
+        isOpen={simulationModalOpen}
+        onClose={() => setSimulationModalOpen(false)}
+        simulation={currentSimulation}
+        onToast={addToast}
       />
 
       {/* Toast notifications */}
@@ -182,6 +197,10 @@ export default function HomePage() {
                     onRegenerate={handleRegenerateLastMessage}
                     onRetestFinding={handleRetestFinding}
                     retestingId={retestingId}
+                    onOpenSimulation={(sim) => {
+                      setCurrentSimulation(sim);
+                      setSimulationModalOpen(true);
+                    }}
                     onToast={addToast}
                   />
                 ))}
@@ -191,6 +210,12 @@ export default function HomePage() {
                   <div className="flex items-center gap-3 my-6 p-4 bg-[#F4F7FB] border border-[#D9E2F0] rounded-xl text-xs font-semibold text-[#0F2A5C]">
                     <RefreshCw className="w-4 h-4 text-[#2563EB]" />
                     <span>Scanning target application and analyzing security posture...</span>
+                  </div>
+                )}
+                {isSimulating && (
+                  <div className="flex items-center gap-3 my-6 p-4 bg-[#F4F7FB] border border-[#D9E2F0] rounded-xl text-xs font-semibold text-[#0F2A5C]">
+                    <RefreshCw className="w-4 h-4 text-[#2563EB]" />
+                    <span>Simulating adversary attack path and executive impact...</span>
                   </div>
                 )}
               </div>
@@ -208,8 +233,10 @@ export default function HomePage() {
             githubRepo={githubRepo}
             onGithubRepoChange={setGithubRepo}
             onStartScan={handleStartScan}
+            onSimulateAttack={handleRunSimulation}
             onSubmit={handleComposerSubmit}
             isScanning={isScanning}
+            isSimulating={isSimulating}
             activeScanId={activeSession?.activeScanId}
             scannedUrl={activeSession?.targetUrl}
             ownershipVerified={activeSession?.ownershipVerified}

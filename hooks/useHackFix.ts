@@ -6,6 +6,7 @@ import {
   ChatSession,
   Finding,
   ScanReport,
+  AttackSimulation,
 } from "@/lib/types";
 import { initialSessions, sampleScanReport } from "@/lib/mock-data";
 import { apiClient } from "@/lib/api-client";
@@ -14,12 +15,18 @@ import { getCurrentTimestamp, isValidUrl } from "@/lib/utils";
 export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "warning" | "error") => void) {
   const [sessions, setSessions] = useState<ChatSession[]>(initialSessions);
   const [activeSessionId, setActiveSessionId] = useState<string>("session-today-01");
-  const [urlInput, setUrlInput] = useState<string>("https://demo-app.hackfix-labs.dev");
+  const [urlInput, setUrlInput] = useState<string>("");
   const [messageInput, setMessageInput] = useState<string>("");
+
   const [attachedZip, setAttachedZip] = useState<File | null>(null);
   const [githubRepo, setGithubRepo] = useState<string>("");
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [retestingId, setRetestingId] = useState<string | null>(null);
+
+  // Executive Breach Simulation state
+  const [isSimulating, setIsSimulating] = useState<boolean>(false);
+  const [simulationModalOpen, setSimulationModalOpen] = useState<boolean>(false);
+  const [currentSimulation, setCurrentSimulation] = useState<AttackSimulation | null>(null);
 
   // Ownership verification modal state
   const [ownershipModalOpen, setOwnershipModalOpen] = useState<boolean>(false);
@@ -379,6 +386,64 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
     }
   };
 
+  // Executive Breach Simulation
+  const handleRunSimulation = async (scanIdOverride?: string) => {
+    const targetScanId = scanIdOverride || activeSession?.activeScanId;
+
+    // Locate the active scan report in the current session
+    const currentReport = activeSession?.messages
+      ?.slice()
+      ?.reverse()
+      ?.find((m) => m.scanReport)?.scanReport;
+
+    const targetUrl = activeSession?.targetUrl || urlInput.trim();
+
+    if (!targetUrl || !targetScanId) {
+      onToast("Please enter a website link and run a scan first before launching AI adversary simulation.", "warning");
+      return;
+    }
+
+    setIsSimulating(true);
+    try {
+      const sim = await apiClient.simulateAttack({
+        scanId: targetScanId,
+        targetUrl,
+        githubRepo: githubRepo.trim() || undefined,
+        findings: currentReport?.findings || [],
+      });
+      setCurrentSimulation(sim);
+      setSimulationModalOpen(true);
+
+      const simMessage: ChatMessageType = {
+        id: `msg-sim-${Date.now()}`,
+        sender: "assistant",
+        text: `### ⚡ Executive Breach & Threat Simulation (${sim.riskLevel} Threat Level)\n\n**Target:** \`${sim.targetUrl}\`\n\n${sim.executiveSummary}\n\n**Boardroom Recommendation:** ${sim.boardroomTakeaway}`,
+        timestamp: getCurrentTimestamp(),
+        simulation: sim,
+        quickReplies: [
+          "Explain Step 2 of the kill chain",
+          "What is the financial liability?",
+          "Show me the patch for this attack path",
+        ],
+      };
+
+      setSessions((prev) =>
+        prev.map((s) =>
+          s.id === activeSessionId
+            ? { ...s, messages: [...s.messages, simMessage] }
+            : s
+        )
+      );
+
+      onToast("Executive attack path simulation generated", "success");
+    } catch (err: any) {
+      onToast(err.message || "Failed to generate simulation", "error");
+    } finally {
+      setIsSimulating(false);
+    }
+  };
+
+
   // Suggestion card clicked from empty state
   const handleSelectSuggestion = (suggestion: { url?: string; prompt: string }) => {
     if (suggestion.url) {
@@ -401,6 +466,12 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
     setGithubRepo,
     isScanning,
     retestingId,
+    isSimulating,
+    simulationModalOpen,
+    setSimulationModalOpen,
+    currentSimulation,
+    setCurrentSimulation,
+    handleRunSimulation,
     ownershipModalOpen,
     setOwnershipModalOpen,
     pendingScanUrl,

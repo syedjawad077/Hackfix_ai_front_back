@@ -231,35 +231,14 @@ export const defaultScanReport = sampleScanReport;
 export const initialSessions: ChatSession[] = [
   {
     id: "session-today-01",
-    title: "demo-app.hackfix-labs.dev",
-    targetUrl: "https://demo-app.hackfix-labs.dev",
-    updatedAt: "Today, 2:20 PM",
+    title: "New security assessment",
+    updatedAt: "Just now",
     group: "today" as const,
-    ownershipVerified: true,
-    activeScanId: "scan-sample-01",
-    messages: [
-      {
-        id: "msg-user-1",
-        sender: "user" as const,
-        text: "Please scan my application at https://demo-app.hackfix-labs.dev and check my attached source code.",
-        timestamp: "2:19 PM",
-      },
-      {
-        id: "msg-assistant-1",
-        sender: "assistant" as const,
-        text: "I completed the security assessment for **https://demo-app.hackfix-labs.dev**. Because you uploaded a project `.zip` file, I also reviewed the underlying source code alongside the active endpoint probes.\n\nHere is the breakdown of what was discovered, safely proved, and prepared for remediation.",
-        timestamp: "2:20 PM",
-        scanReport: sampleScanReport,
-        quickReplies: [
-          "Explain this finding simply",
-          "Show me the fix",
-          "Re-test it",
-          "What should I fix first?",
-        ],
-      },
-    ],
+    ownershipVerified: false,
+    messages: [],
   },
 ];
+
 
 export const samplePastScans: PastScanSummary[] = [
   {

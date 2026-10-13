@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from typing import List, Tuple, Optional
 from app.config import settings
-from app.schemas import Finding, CodeDiff, ScanReport
+from app.schemas import Finding, CodeDiff, ScanReport, AttackSimulationResponse, AttackSimulationStage
 
 logger = logging.getLogger(__name__)
 
@@ -323,4 +323,337 @@ class GeminiService:
             ["What are the biggest threats?", "Show me the fix", "What should I fix first?"]
         )
 
+    async def simulate_attack_path(self, report: Optional[ScanReport]) -> AttackSimulationResponse:
+        """
+        Executes a safe, non-destructive threat modeling simulation for boardroom executives and judges.
+        Walks through the adversary kill chain (Recon -> Vector Exploitation -> Business Impact -> Defensive Shield)
+        grounded in the scan findings without executing offensive payloads.
+        """
+        if not os.getenv("PYTEST_CURRENT_TEST"):
+            self._ensure_client()
+
+        target_url = report.targetUrl if report else "https://target-application.com"
+        scan_id = report.id if report else "scan-ad-hoc"
+        findings = report.findings if report else []
+
+        # If no vulnerabilities exist on the target, return a clean "No Viable Attack Chain" response
+        if not findings:
+            return AttackSimulationResponse(
+                scanId=scan_id,
+                targetUrl=target_url,
+                riskLevel="Low",
+                executiveSummary=f"Security assessment for {target_url} identified zero exploitable vulnerabilities. Automated probes and perimeter inspection confirmed that transport controls and security baselines are actively enforced.",
+                stages=[
+                    AttackSimulationStage(
+                        stepNumber=1,
+                        phase="1. External Reconnaissance",
+                        title="Adversary Perimeter Probing",
+                        narrative=f"Threat actor attempts automated passive and active reconnaissance against {target_url}. Probes detect standard security controls, hardened headers, and valid HTTPS enforcement.",
+                        affectedAsset=f"Public HTTP Gateway ({target_url})",
+                        businessImpact="No exposure identified. Reconnaissance yields no actionable entry points or unhardened transport vectors.",
+                        mitigation="Maintain existing perimeter hardening and automated vulnerability regression testing.",
+                        status="blocked_by_patch"
+                    ),
+                    AttackSimulationStage(
+                        stepNumber=2,
+                        phase="2. Exploit Vector Search",
+                        title="No Viable Vulnerability Vectors Found",
+                        narrative="Adversary scans for common injection, session manipulation, and clickjacking flaws. All input gates, parameter validation, and frame controls reject malicious payloads.",
+                        affectedAsset=f"Application Endpoints ({target_url})",
+                        businessImpact="Exploitation phase completely halted. Threat actor cannot achieve authentication bypass, data exfiltration, or lateral escalation.",
+                        mitigation="Continue enforcing defensive coding standards and dependency patching.",
+                        status="blocked_by_patch"
+                    ),
+                    AttackSimulationStage(
+                        stepNumber=3,
+                        phase="3. Executive Business Posture",
+                        title="Defensive Baseline Maintained",
+                        narrative="Because no exploitable weakness exists in the assessed scope, no unauthorized data access or regulatory non-compliance event can be constructed.",
+                        affectedAsset="Customer Data & Enterprise Infrastructure",
+                        businessImpact="Zero immediate regulatory fines or data breach disclosure obligations under GDPR / PCI-DSS.",
+                        mitigation="Conduct periodic penetration testing and continuous CI/CD security scanning.",
+                        status="blocked_by_patch"
+                    ),
+                    AttackSimulationStage(
+                        stepNumber=4,
+                        phase="4. Remediation Shield",
+                        title="Proactive Defensive Posture Active",
+                        narrative="Application perimeter is hardened. No unpatched critical, high, or medium severity vectors were detected.",
+                        affectedAsset="Secure Application Baseline",
+                        businessImpact="Security posture confirmed healthy. Adversary cannot construct a viable kill chain.",
+                        mitigation="No remediation patches required at this time. Maintain baseline controls.",
+                        status="blocked_by_patch"
+                    )
+                ],
+                boardroomTakeaway=f"Executive takeaway for {target_url}: No exploitable vulnerabilities detected. Defensive controls are operating effectively."
+            )
+
+        if self.enabled and self.client and findings:
+            findings_bullet = "\n".join([
+                f"- Finding {idx+1}: {f.title} (Severity: {f.severity.value}, Score: {f.score}/10, Endpoint: {f.endpoint}, Impact: {f.impact}, Evidence: {f.proof or f.evidence})"
+                for idx, f in enumerate(findings[:8])
+            ])
+            gh_ctx = f"\nLinked GitHub Repository: {report.githubRepo}" if report and report.githubRepo else ""
+
+            prompt = (
+                "You are HackFix AI, a defensive Breach & Attack Simulation Expert presenting to Boardroom Executives and Judges.\n"
+                f"Target Website: {target_url}{gh_ctx}\n\n"
+                f"Discovered Vulnerabilities for this specific website:\n{findings_bullet}\n\n"
+                "TASK:\n"
+                "Construct a safe, conceptual executive threat simulation modeling how an opportunistic adversary would COMBINE and CHAIN these SPECIFIC weaknesses together.\n"
+                "- Ground your simulation strictly in the combination of vulnerabilities listed above. Do NOT invent fictional vulnerabilities (e.g. do not invent SQL injection if only missing HTTP headers were found).\n"
+                "- If the findings consist of missing security headers (e.g. CSP, HSTS, X-Content-Type-Options), model SSL stripping, man-in-the-middle session sniffing, and iframe clickjacking.\n"
+                "- If the findings include injection or authentication bypass, model credential evasion and data extraction.\n"
+                "- Explain how Finding A combines with Finding B to escalate real-world business risk (financial losses, regulatory non-compliance fines under GDPR/PCI-DSS, session hijacking).\n"
+                "- In Stage 4 ('Remediation Shield'), explain how HackFix AI's defensive code patches break this exact kill chain.\n\n"
+                "You MUST include exactly 4 sequential stages in the kill chain:\n"
+                "  Stage 1: Phase '1. External Reconnaissance', status 'simulated_risk'\n"
+                "  Stage 2: Phase '2. Vector Exploitation', status 'simulated_risk'\n"
+                "  Stage 3: Phase '3. Executive Business Impact', status 'simulated_risk'\n"
+                "  Stage 4: Phase '4. Remediation Shield', status 'blocked_by_patch'\n\n"
+                "Return a strict JSON object with this exact schema:\n"
+                "{\n"
+                '  "riskLevel": "Critical" | "High" | "Moderate" | "Low",\n'
+                '  "executiveSummary": "2-3 clear sentences summarizing the specific business exposure from this combination of findings",\n'
+                '  "stages": [\n'
+                '    {\n'
+                '      "stepNumber": 1,\n'
+                '      "phase": "1. External Reconnaissance",\n'
+                '      "title": "Short title",\n'
+                '      "narrative": "What the attacker observes and tests based on the actual findings",\n'
+                '      "affectedAsset": "Specific endpoint or system",\n'
+                '      "businessImpact": "Real-world business risk",\n'
+                '      "mitigation": "Defensive control",\n'
+                '      "status": "simulated_risk"\n'
+                '    },\n'
+                '    {\n'
+                '      "stepNumber": 2,\n'
+                '      "phase": "2. Vector Exploitation",\n'
+                '      "title": "Short title",\n'
+                '      "narrative": "How the detected vulnerabilities are chained or triggered",\n'
+                '      "affectedAsset": "Target parameter or endpoint",\n'
+                '      "businessImpact": "Immediate operational exploit impact",\n'
+                '      "mitigation": "Code-level prevention",\n'
+                '      "status": "simulated_risk"\n'
+                '    },\n'
+                '    {\n'
+                '      "stepNumber": 3,\n'
+                '      "phase": "3. Executive Business Impact",\n'
+                '      "title": "Short title",\n'
+                '      "narrative": "Lateral movement or unauthorized data extraction resulting from the exploit",\n'
+                '      "affectedAsset": "Customer records or sessions",\n'
+                '      "businessImpact": "Regulatory penalties and financial loss",\n'
+                '      "mitigation": "Tenant isolation and logging",\n'
+                '      "status": "simulated_risk"\n'
+                '    },\n'
+                '    {\n'
+                '      "stepNumber": 4,\n'
+                '      "phase": "4. Remediation Shield",\n'
+                '      "title": "Defensive Neutralization",\n'
+                '      "narrative": "Application of HackFix code patches blocks the exploit chain",\n'
+                '      "affectedAsset": "Hardened application baseline",\n'
+                '      "businessImpact": "Threat vector fully closed, compliance restored",\n'
+                '      "mitigation": "Deploy pull request patches and re-verify",\n'
+                '      "status": "blocked_by_patch"\n'
+                '    }\n'
+                '  ],\n'
+                '  "boardroomTakeaway": "1 compelling sentence advice tailored to this target and findings"\n'
+                "}"
+            )
+
+            candidates = [
+                self.model_name,
+                "gemini-3.5-flash-lite",
+                "gemini-flash-lite-latest",
+                "gemini-3.1-flash-lite",
+                "gemini-3.8-flash",
+                "gemini-3.5-flash",
+            ]
+            seen = set()
+            models_to_try = [m for m in candidates if m and not (m in seen or seen.add(m))]
+
+            for model in models_to_try:
+                try:
+                    response = self.client.models.generate_content(
+                        model=model,
+                        contents=prompt,
+                        config={"response_mime_type": "application/json"}
+                    )
+                    if response and response.text:
+                        import json
+                        data = json.loads(response.text.strip())
+                        stages = [
+                            AttackSimulationStage(
+                                stepNumber=s.get("stepNumber", idx + 1),
+                                phase=s.get("phase", f"Stage {idx + 1}"),
+                                title=s.get("title", "Attack Vector"),
+                                narrative=s.get("narrative", ""),
+                                affectedAsset=s.get("affectedAsset", target_url),
+                                businessImpact=s.get("businessImpact", ""),
+                                mitigation=s.get("mitigation", ""),
+                                status=s.get("status", "simulated_risk")
+                            )
+                            for idx, s in enumerate(data.get("stages", []))
+                        ]
+                        if stages:
+                            # Ensure the final stage is always the Remediation Shield
+                            has_shield = any(
+                                s.status == "blocked_by_patch" or "shield" in s.phase.lower() or "remediation" in s.phase.lower()
+                                for s in stages
+                            )
+                            if not has_shield:
+                                stages.append(
+                                    AttackSimulationStage(
+                                        stepNumber=len(stages) + 1,
+                                        phase=f"{len(stages) + 1}. Remediation Shield",
+                                        title="Defensive Patch Neutralization",
+                                        narrative="HackFix synthesized code patches applied, severing the adversary attack path.",
+                                        affectedAsset="Hardened Application Baseline",
+                                        businessImpact="Threat path neutralized before breach execution. Application security restored.",
+                                        mitigation="Deploy generated pull request and confirm with automated verification.",
+                                        status="blocked_by_patch"
+                                    )
+                                )
+                            # Normalize step numbers
+                            for i, stg in enumerate(stages):
+                                stg.stepNumber = i + 1
+
+                            return AttackSimulationResponse(
+                                scanId=scan_id,
+                                targetUrl=target_url,
+                                riskLevel=data.get("riskLevel", "High"),
+                                executiveSummary=data.get("executiveSummary", ""),
+                                stages=stages,
+                                boardroomTakeaway=data.get("boardroomTakeaway", "")
+                            )
+                except Exception as e:
+                    logger.debug("Simulation generation attempt on %s failed: %s", model, e)
+                    continue
+
+        return self._deterministic_attack_simulation(report)
+
+    def _deterministic_attack_simulation(self, report: Optional[ScanReport]) -> AttackSimulationResponse:
+        """High-impact deterministic executive breach simulation fallback."""
+        target_url = report.targetUrl if report else "https://target-application.com"
+        scan_id = report.id if report else "scan-ad-hoc"
+        findings = report.findings if report else []
+
+        if not findings:
+            return AttackSimulationResponse(
+                scanId=scan_id,
+                targetUrl=target_url,
+                riskLevel="Low",
+                executiveSummary=f"Security assessment for {target_url} identified zero exploitable vulnerabilities. Automated probes and perimeter inspection confirmed that transport controls and security baselines are actively enforced.",
+                stages=[
+                    AttackSimulationStage(
+                        stepNumber=1,
+                        phase="1. External Reconnaissance",
+                        title="Adversary Perimeter Probing",
+                        narrative=f"Threat actor attempts automated passive and active reconnaissance against {target_url}. Probes detect standard security controls, hardened headers, and valid HTTPS enforcement.",
+                        affectedAsset=f"Public HTTP Gateway ({target_url})",
+                        businessImpact="No exposure identified. Reconnaissance yields no actionable entry points or unhardened transport vectors.",
+                        mitigation="Maintain existing perimeter hardening and automated vulnerability regression testing.",
+                        status="blocked_by_patch"
+                    ),
+                    AttackSimulationStage(
+                        stepNumber=2,
+                        phase="2. Exploit Vector Search",
+                        title="No Viable Vulnerability Vectors Found",
+                        narrative="Adversary scans for common injection, session manipulation, and clickjacking flaws. All input gates, parameter validation, and frame controls reject malicious payloads.",
+                        affectedAsset=f"Application Endpoints ({target_url})",
+                        businessImpact="Exploitation phase completely halted. Threat actor cannot achieve authentication bypass, data exfiltration, or lateral escalation.",
+                        mitigation="Continue enforcing defensive coding standards and dependency patching.",
+                        status="blocked_by_patch"
+                    ),
+                    AttackSimulationStage(
+                        stepNumber=3,
+                        phase="3. Executive Business Posture",
+                        title="Defensive Baseline Maintained",
+                        narrative="Because no exploitable weakness exists in the assessed scope, no unauthorized data access or regulatory non-compliance event can be constructed.",
+                        affectedAsset="Customer Data & Enterprise Infrastructure",
+                        businessImpact="Zero immediate regulatory fines or data breach disclosure obligations under GDPR / PCI-DSS.",
+                        mitigation="Conduct periodic penetration testing and continuous CI/CD security scanning.",
+                        status="blocked_by_patch"
+                    ),
+                    AttackSimulationStage(
+                        stepNumber=4,
+                        phase="4. Remediation Shield",
+                        title="Proactive Defensive Posture Active",
+                        narrative="Application perimeter is hardened. No unpatched critical, high, or medium severity vectors were detected.",
+                        affectedAsset="Secure Application Baseline",
+                        businessImpact="Security posture confirmed healthy. Adversary cannot construct a viable kill chain.",
+                        mitigation="No remediation patches required at this time. Maintain baseline controls.",
+                        status="blocked_by_patch"
+                    )
+                ],
+                boardroomTakeaway=f"Executive takeaway for {target_url}: No exploitable vulnerabilities detected. Defensive controls are operating effectively."
+            )
+
+        top_finding = findings[0]
+        second_finding = findings[1] if len(findings) > 1 else None
+
+        top_title = top_finding.title
+        top_endpoint = top_finding.endpoint or target_url
+        top_impact = top_finding.impact or "Potential unauthorized data access."
+
+        risk_level = "Critical" if report and report.riskScore >= 70 else "High" if report and report.riskScore >= 40 else "Moderate"
+
+        exploit_narrative = (
+            f"Adversary targets `{top_endpoint}` leveraging {top_title}. "
+            f"{f'This is chained with {second_finding.title} on {second_finding.endpoint} to amplify threat severity.' if second_finding else 'Exploiting this flaw allows the attacker to bypass boundary filters.'}"
+        )
+
+        stages = [
+            AttackSimulationStage(
+                stepNumber=1,
+                phase="1. External Reconnaissance",
+                title="Automated Perimeter Fingerprinting",
+                narrative=f"Adversaries scan public transport headers and endpoint metadata on {target_url}, mapping missing security controls and defensive blindspots across {len(findings)} discovered weaknesses.",
+                affectedAsset=f"Public HTTP Gateway ({target_url})",
+                businessImpact="Unprotected surface enables targeted reconnaissance, identifying unhardened endpoints for weaponization.",
+                mitigation="Deploy strict HTTP response headers (HSTS, CSP, X-Content-Type-Options) via edge proxy middleware.",
+                status="simulated_risk"
+            ),
+            AttackSimulationStage(
+                stepNumber=2,
+                phase="2. Vector Exploitation",
+                title=f"Exploitation: {top_title}",
+                narrative=exploit_narrative,
+                affectedAsset=f"{top_endpoint}",
+                businessImpact=f"{top_impact} Threat actor achieves unauthorized control or data tampering.",
+                mitigation="Implement parameterized queries, strict input sanitization, and tenant authorization checks.",
+                status="simulated_risk"
+            ),
+            AttackSimulationStage(
+                stepNumber=3,
+                phase="3. Executive Business Impact",
+                title="Compounded Business & Regulatory Liability",
+                narrative=f"Chaining the vulnerabilities on {target_url} allows unauthorized data extraction, session credential hijacking, or compliance violations.",
+                affectedAsset="Customer Database & Organization Sessions",
+                businessImpact="Direct regulatory liability (GDPR/PCI-DSS non-compliance fines up to 4% global turnover), mandatory breach disclosures, and brand reputation loss.",
+                mitigation="Enforce database encryption-at-rest, tenant isolation filters, and centralized access logging.",
+                status="simulated_risk"
+            ),
+            AttackSimulationStage(
+                stepNumber=4,
+                phase="4. Remediation Shield",
+                title="Defensive Patch Verification",
+                narrative=f"Synthesized HackFix advisory diff applied across `{top_endpoint}`, severing the adversary attack chain before exploitation occurs.",
+                affectedAsset="Hardened Application Infrastructure",
+                businessImpact="Threat path neutralized before adversary discovery. Application risk score drops to safe operational baseline.",
+                mitigation="Merge suggested repository pull request and run automated re-test to confirm patch verification.",
+                status="blocked_by_patch"
+            )
+        ]
+
+        return AttackSimulationResponse(
+            scanId=scan_id,
+            targetUrl=target_url,
+            riskLevel=risk_level,
+            executiveSummary=f"HackFix AI simulated a 4-stage adversary attack path against {target_url} based on the combination of {len(findings)} detected vulnerabilities. Without remediation, weaknesses on `{top_endpoint}` create high-probability threat vectors for customer session hijacking and compliance violations.",
+            stages=stages,
+            boardroomTakeaway="Remediating the root-cause vulnerabilities using HackFix AI's verified patches severs the adversary kill chain and restores executive compliance."
+        )
+
 gemini_service = GeminiService()
+

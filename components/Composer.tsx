@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect, useState } from "react";
-import { ArrowUp, Github, X, Shield, Globe } from "lucide-react";
+import { ArrowUp, Github, X, Shield, Globe, Zap } from "lucide-react";
 import { UrlInput } from "./UrlInput";
 import { isValidUrl } from "@/lib/utils";
 
@@ -13,8 +13,10 @@ interface ComposerProps {
   githubRepo?: string;
   onGithubRepoChange?: (repo: string) => void;
   onStartScan?: (urlOverride?: string) => void;
+  onSimulateAttack?: () => void;
   onSubmit: () => void;
   isScanning?: boolean;
+  isSimulating?: boolean;
   activeScanId?: string;
   scannedUrl?: string;
   ownershipVerified?: boolean;
@@ -29,8 +31,10 @@ export const Composer: React.FC<ComposerProps> = ({
   githubRepo = "",
   onGithubRepoChange,
   onStartScan,
+  onSimulateAttack,
   onSubmit,
   isScanning = false,
+  isSimulating = false,
   activeScanId,
   scannedUrl,
   ownershipVerified = false,
@@ -241,6 +245,29 @@ export const Composer: React.FC<ComposerProps> = ({
                 <span className="hidden sm:inline text-[11px]">
                   {githubRepo ? "GitHub linked" : "Link GitHub repo"}
                 </span>
+              </button>
+
+              {/* Simulate Attack Path Button (activates after scanning) */}
+              <button
+                type="button"
+                onClick={onSimulateAttack}
+                disabled={!activeScanId || isScanning || isSimulating}
+                className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-pill border ${
+                  activeScanId
+                    ? "bg-[#0F2A5C] text-white hover:bg-[#0A1F47] shadow-soft cursor-pointer font-semibold"
+                    : "bg-[#F4F7FB] text-[#51627A]/50 border-[#D9E2F0] cursor-not-allowed opacity-60"
+                }`}
+                title={
+                  activeScanId
+                    ? "Run safe AI threat simulation for executives & judges"
+                    : "Scan a website first to simulate attack paths"
+                }
+              >
+                <Zap className="w-3.5 h-3.5 text-[#F59E0B]" />
+                <span className="hidden sm:inline text-[11px]">
+                  {isSimulating ? "Simulating..." : "Simulate Attack Path"}
+                </span>
+                <span className="sm:hidden text-[11px]">Simulate</span>
               </button>
             </div>
 

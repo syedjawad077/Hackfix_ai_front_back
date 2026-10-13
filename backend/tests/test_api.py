@@ -76,3 +76,49 @@ def test_report_download_nonexistent(client):
     response = client.get("/api/scan/nonexistent-scan-id/report?format=pdf")
     assert response.status_code == 404
 
+def test_simulation_requires_target_or_scan(client):
+    response = client.post("/api/simulation", json={})
+    assert response.status_code == 400
+    assert "website link must be provided" in response.json()["detail"].lower()
+
+def test_simulation_zero_vulnerabilities(client):
+    payload = {
+        "targetUrl": "https://secure-site.example.com",
+        "findings": []
+    }
+    response = client.post("/api/simulation", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["riskLevel"] == "Low"
+    assert "zero exploitable vulnerabilities" in data["executiveSummary"].lower()
+    assert len(data["stages"]) == 4
+    for stage in data["stages"]:
+        assert stage["status"] == "blocked_by_patch"
+
+def test_simulation_with_findings(client):
+    payload = {
+        "targetUrl": "https://vulnerable-test.com",
+        "findings": [
+            {
+                "id": "f-1",
+                "title": "Missing Content-Security-Policy",
+                "technicalName": "CSP Missing",
+                "category": "A05:2021-Security Misconfiguration",
+                "severity": "medium",
+                "score": 5.0,
+                "endpoint": "GET /",
+                "impact": "Clickjacking and cross-site scripting risks",
+                "proof": "No CSP header detected",
+                "evidence": "Header missing"
+            }
+        ]
+    }
+    response = client.post("/api/simulation", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["targetUrl"] == "https://vulnerable-test.com"
+    assert len(data["stages"]) >= 4
+    assert "boardroomTakeaway" in data
+
+
+
