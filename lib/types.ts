@@ -31,14 +31,14 @@ export interface Finding {
   };
 }
 
-export type ScanStep = 'find' | 'prove' | 'fix' | 'verify';
+export type ScanStep = 'find' | 'prove' | 'fix';
 export type StepState = 'pending' | 'running' | 'done';
 
 export interface ScanStepperState {
   find: StepState;
   prove: StepState;
   fix: StepState;
-  verify: StepState;
+  verify?: StepState;
 }
 
 export interface ScanLogEntry {
@@ -88,6 +88,18 @@ export interface AttackSimulationStage {
   businessImpact: string;
   mitigation: string;
   status: 'simulated_risk' | 'blocked_by_patch';
+  
+  // Feature 2: MITRE ATT&CK Mapping
+  mitreTechniqueId?: string;
+  mitreTechniqueName?: string;
+  mitreTactic?: string;
+  
+  // Feature 4: Dual Perspective (Red Team Probe vs Blue Team Detection Log Signature)
+  adversaryPayload?: string;
+  detectionLogSignature?: string;
+
+  // Feature 5: What-If defense mapping
+  blockedByDefense?: string;
 }
 
 export interface AttackSimulationPayload {
@@ -95,6 +107,7 @@ export interface AttackSimulationPayload {
   targetUrl?: string;
   githubRepo?: string;
   findings?: Finding[];
+  appliedDefenses?: string[];
 }
 
 export interface AttackSimulation {
@@ -104,6 +117,20 @@ export interface AttackSimulation {
   executiveSummary: string;
   stages: AttackSimulationStage[];
   boardroomTakeaway: string;
+
+  // Feature 1: Sector & Industry Context
+  industrySector?: string;
+  complianceImpact?: string[];
+
+  // Feature 3: Vulnerability Chaining Catalyst
+  chainabilityScore?: number;
+  chainabilityVerdict?: string;
+  chainCatalysts?: string[];
+
+  // Feature 5: Interactive What-If Defense Severance state
+  severedAtStage?: number | null;
+  severancePercentage?: number;
+  availableDefenses?: string[];
 }
 
 

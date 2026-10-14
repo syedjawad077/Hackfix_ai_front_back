@@ -36,13 +36,13 @@ export default function HomePage() {
     attachedZip,
     setAttachedZip,
     isScanning,
-    retestingId,
     isSimulating,
     simulationModalOpen,
     setSimulationModalOpen,
     currentSimulation,
     setCurrentSimulation,
     handleRunSimulation,
+    handleSimulateAttack,
     ownershipModalOpen,
     setOwnershipModalOpen,
     pendingScanUrl,
@@ -61,7 +61,6 @@ export default function HomePage() {
     handleComposerSubmit,
     handleConfirmOwnership,
     handleSendChatMessage,
-    handleRetestFinding,
     handleSelectSuggestion,
   } = useHackFix(addToast);
 
@@ -113,6 +112,8 @@ export default function HomePage() {
         onClose={() => setSimulationModalOpen(false)}
         simulation={currentSimulation}
         onToast={addToast}
+        onReSimulate={(defenses) => handleRunSimulation(undefined, defenses)}
+        isSimulating={isSimulating}
       />
 
       {/* Toast notifications */}
@@ -180,7 +181,7 @@ export default function HomePage() {
         >
           <div className="max-w-[768px] mx-auto min-h-full flex flex-col justify-between">
             {/* Empty State vs Chat Messages */}
-            {!hasMessages ? (
+            {!hasMessages && !isScanning ? (
               <div className="my-auto">
                 <EmptyState onSelectSuggestion={handleSelectSuggestion} />
               </div>
@@ -195,12 +196,12 @@ export default function HomePage() {
                     }
                     onSelectQuickReply={handleSendChatMessage}
                     onRegenerate={handleRegenerateLastMessage}
-                    onRetestFinding={handleRetestFinding}
-                    retestingId={retestingId}
                     onOpenSimulation={(sim) => {
                       setCurrentSimulation(sim);
                       setSimulationModalOpen(true);
                     }}
+                    onSimulateAttack={handleRunSimulation}
+                    isSimulating={isSimulating}
                     onToast={addToast}
                   />
                 ))}
@@ -208,13 +209,13 @@ export default function HomePage() {
                 {/* Plain Static Scanning / Loading State */}
                 {isScanning && (
                   <div className="flex items-center gap-3 my-6 p-4 bg-[var(--paper-dark)] border border-[var(--line)] rounded-[8px] text-xs font-semibold text-[var(--ink)]">
-                    <RefreshCw className="w-4 h-4 text-[var(--signal)]" />
+                    <RefreshCw className="w-4 h-4 text-[var(--signal)] animate-spin" />
                     <span>Scanning target application and analyzing security posture...</span>
                   </div>
                 )}
                 {isSimulating && (
                   <div className="flex items-center gap-3 my-6 p-4 bg-[var(--paper-dark)] border border-[var(--line)] rounded-[8px] text-xs font-semibold text-[var(--ink)]">
-                    <RefreshCw className="w-4 h-4 text-[var(--signal)]" />
+                    <RefreshCw className="w-4 h-4 text-[var(--signal)] animate-spin" />
                     <span>Simulating adversary attack path and executive impact...</span>
                   </div>
                 )}
@@ -233,7 +234,7 @@ export default function HomePage() {
             githubRepo={githubRepo}
             onGithubRepoChange={setGithubRepo}
             onStartScan={handleStartScan}
-            onSimulateAttack={handleRunSimulation}
+            onSimulateAttack={handleSimulateAttack}
             onSubmit={handleComposerSubmit}
             isScanning={isScanning}
             isSimulating={isSimulating}

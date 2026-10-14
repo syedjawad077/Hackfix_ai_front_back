@@ -21,7 +21,6 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
   const [attachedZip, setAttachedZip] = useState<File | null>(null);
   const [githubRepo, setGithubRepo] = useState<string>("");
   const [isScanning, setIsScanning] = useState<boolean>(false);
-  const [retestingId, setRetestingId] = useState<string | null>(null);
 
   // Executive Breach Simulation state
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
@@ -31,6 +30,7 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
   // Ownership verification modal state
   const [ownershipModalOpen, setOwnershipModalOpen] = useState<boolean>(false);
   const [pendingScanUrl, setPendingScanUrl] = useState<string>("");
+  const [pendingAction, setPendingAction] = useState<"scan" | "simulate">("scan");
 
   // Window drag & drop overlay state
   const [isDraggingOverWindow, setIsDraggingOverWindow] = useState<boolean>(false);
@@ -163,14 +163,22 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
   }, [activeSessionId, onToast]);
 
   // Execute scan execution logic
-  const executeScan = async (rawTargetUrl: string, promptText?: string) => {
+  // Execute scan execution logic
+  const executeScan = async (
+    rawTargetUrl: string,
+    promptText?: string,
+    triggerSimulationAfterScan: boolean = false
+  ) => {
     const targetUrl = normalizeUrl(rawTargetUrl);
     setIsScanning(true);
     const time = getCurrentTimestamp();
+    const scanningMsgId = `msg-scan-${Date.now()}`;
 
     // 1. Add user message
     const userMsgText = promptText
       ? `${promptText}\nTarget: ${targetUrl}`
+      : triggerSimulationAfterScan
+      ? `Simulate adversary attack path for ${targetUrl}`
       : `Scan ${targetUrl} for security vulnerabilities`;
 
     const userMsg: ChatMessageType = {
@@ -180,6 +188,65 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
       timestamp: time,
     };
 
+    // 2. Initial in-progress scan report for immediate UI rendering
+    const initialReport: ScanReport = {
+      id: `scan-progress-${Date.now().toString(36)}`,
+      targetUrl,
+      hasSourceZip: !!attachedZip,
+      githubRepo: githubRepo.trim() || undefined,
+      ownershipVerified: true,
+      stepper: {
+        find: "running",
+        prove: "pending",
+        fix: "pending",
+      },
+      logs: [
+        {
+          id: `log-${Date.now()}-1`,
+          timestamp: time,
+          level: "info",
+          message: `Autonomous security scan initiated for ${targetUrl}`,
+        },
+      ],
+      riskScore: 0,
+      verdict: "Scanning target application and analyzing security posture...",
+      findings: [],
+      status: "running",
+      summaryMarkdown: `Security assessment in progress for **${targetUrl}**...`,
+      createdAt: time,
+    };
+
+    const initialAssistantMsg: ChatMessageType = {
+      id: scanningMsgId,
+      sender: "assistant",
+      text: `Initiating autonomous security assessment for **${targetUrl}**...`,
+      timestamp: time,
+      scanReport: initialReport,
+    };
+
+    // IMMEDIATELY update session with user message and in-progress scan!
+    setSessions((prev) =>
+      prev.map((s) => {
+        if (s.id === activeSessionId) {
+          let sessionTitle = targetUrl;
+          try {
+            sessionTitle = new URL(targetUrl).hostname || targetUrl;
+          } catch {
+            sessionTitle = targetUrl;
+          }
+          return {
+            ...s,
+            title: sessionTitle,
+            targetUrl,
+            ownershipVerified: true,
+            messages: [...s.messages, userMsg, initialAssistantMsg],
+          };
+        }
+        return s;
+      })
+    );
+    setMessageInput("");
+
     try {
       const report = await apiClient.startScan({
         targetUrl,
@@ -187,58 +254,101 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
         zipFile: attachedZip,
         ownershipVerified: true,
         prompt: promptText,
+        onProgress: (progressReport) => {
+          // Live update the stepper and logs as each phase progresses!
+          setSessions((prev) =>
+            prev.map((s) => {
+              if (s.id !== activeSessionId) return s;
+              return {
+                ...s,
+                activeScanId: progressReport.id,
+                messages: s.messages.map((m) =>
+                  m.id === scanningMsgId
+                    ? {
+                        ...m,
+                        scanReport: progressReport,
+                        text: progressReport.status === "completed"
+                          ? `I completed the security assessment for **${targetUrl}**. ${
+                              githubRepo.trim()
+                                ? `Because you linked GitHub repo **${githubRepo.trim()}**, I correlated repository architecture with active security probes.`
+                                : "Live endpoints and passive security headers were evaluated."
+                            }\n\nHere are the findings and proof of concept validations.`
+                          : `Scanning **${targetUrl}** — Stage: **${
+                              progressReport.stepper.fix === "running" ? "FIX" :
+                              progressReport.stepper.prove === "running" ? "PROVE" : "FIND"
+                            }**...`,
+                      }
+                    : m
+                ),
+              };
+            })
+          );
+        },
       });
 
-      const assistantMsg: ChatMessageType = {
-        id: `msg-assistant-${Date.now()}`,
-        sender: "assistant",
-        text: `I completed the security assessment for **${targetUrl}**. ${
-          githubRepo.trim()
-            ? `Because you linked GitHub repo **${githubRepo.trim()}**, I correlated repository architecture with active security probes.`
-            : "Live endpoints and passive security headers were evaluated."
-        }\n\nHere are the findings and proof of concept validations.`,
-        timestamp: getCurrentTimestamp(),
-        scanReport: report,
-        quickReplies: [
-          "What are the biggest threats?",
-          "Explain this finding simply",
-          "Show me the fix",
-          "What should I fix first?",
-        ],
-      };
-
+      // Finalize the assistant message with complete findings and quick replies
       setSessions((prev) =>
         prev.map((s) => {
-          if (s.id === activeSessionId) {
-            let sessionTitle = targetUrl;
-            try {
-              sessionTitle = new URL(targetUrl).hostname || targetUrl;
-            } catch {
-              sessionTitle = targetUrl;
-            }
-            return {
-              ...s,
-              title: sessionTitle,
-              targetUrl,
-              ownershipVerified: true,
-              activeScanId: report.id,
-              messages: [...s.messages, userMsg, assistantMsg],
-            };
-          }
-          return s;
+          if (s.id !== activeSessionId) return s;
+          return {
+            ...s,
+            activeScanId: report.id,
+            messages: s.messages.map((m) =>
+              m.id === scanningMsgId
+                ? {
+                    ...m,
+                    scanReport: report,
+                    text: `I completed the security assessment for **${targetUrl}**. ${
+                      githubRepo.trim()
+                        ? `Because you linked GitHub repo **${githubRepo.trim()}**, I correlated repository architecture with active security probes.`
+                        : "Live endpoints and passive security headers were evaluated."
+                    }\n\nHere are the findings and proof of concept validations.`,
+                    quickReplies: [
+                      "What are the biggest threats?",
+                      "Explain this finding simply",
+                      "Show me the fix",
+                      "What should I fix first?",
+                    ],
+                  }
+                : m
+            ),
+          };
         })
       );
 
-      setMessageInput("");
       onToast("Security scan completed", "success");
+
+      // ONLY trigger simulation if explicitly requested!
+      if (triggerSimulationAfterScan) {
+        await handleRunSimulation(report.id, undefined, targetUrl, report.findings);
+      }
     } catch (err: any) {
+      setSessions((prev) =>
+        prev.map((s) => {
+          if (s.id !== activeSessionId) return s;
+          return {
+            ...s,
+            messages: s.messages.map((m) =>
+              m.id === scanningMsgId
+                ? {
+                    ...m,
+                    text: `Scan could not complete: ${err.message || "Connection timeout"}. Please verify target URL is reachable.`,
+                    scanReport: m.scanReport
+                      ? { ...m.scanReport, status: "failed" }
+                      : undefined,
+                  }
+                : m
+            ),
+          };
+        })
+      );
       onToast(err.message || "Scan failed to execute", "error");
     } finally {
       setIsScanning(false);
     }
   };
 
-  // Explicit start scan action
+  // Explicit start scan action (Standard scan only - NO simulation)
   const handleStartScan = (targetUrlOverride?: string) => {
     const rawTarget = (targetUrlOverride || urlInput).trim();
     if (!rawTarget) {
@@ -246,16 +356,47 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
       return;
     }
     if (!isValidUrl(rawTarget)) {
-      onToast("Please enter a valid website URL or domain (e.g. https://your-site.com or your-site.com)", "error");
+      onToast("Please enter a valid website URL or domain (e.g. youtube.com or https://your-site.com)", "error");
       return;
     }
     const target = normalizeUrl(rawTarget);
     if (!activeSession?.ownershipVerified) {
       setPendingScanUrl(target);
+      setPendingAction("scan");
       setOwnershipModalOpen(true);
       return;
     }
-    executeScan(target);
+    executeScan(target, undefined, false);
+  };
+
+  // Explicit simulate attack path action (Triggers attack simulation)
+  const handleSimulateAttack = async (targetUrlOverride?: string) => {
+    const rawTarget = (targetUrlOverride || urlInput).trim();
+
+    // If scan already completed for current target, run simulation immediately
+    if (activeSession?.activeScanId && (!rawTarget || normalizeUrl(rawTarget) === activeSession?.targetUrl)) {
+      await handleRunSimulation(activeSession.activeScanId);
+      return;
+    }
+
+    if (!rawTarget) {
+      onToast("Please enter a website URL to simulate attack path", "warning");
+      return;
+    }
+    if (!isValidUrl(rawTarget)) {
+      onToast("Please enter a valid website URL or domain (e.g. youtube.com or https://your-site.com)", "error");
+      return;
+    }
+
+    const target = normalizeUrl(rawTarget);
+    if (!activeSession?.ownershipVerified) {
+      setPendingScanUrl(target);
+      setPendingAction("simulate");
+      setOwnershipModalOpen(true);
+      return;
+    }
+
+    await executeScan(target, undefined, true);
   };
 
   // Submit action from composer (Enter or Send button)
@@ -270,7 +411,7 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
       return;
     }
 
-    // Priority 2: If message is empty, but URL is provided, start the scan
+    // Priority 2: If message is empty, but URL is provided, start standard scan
     if (trimmedUrl && isValidUrl(trimmedUrl)) {
       handleStartScan(trimmedUrl);
       return;
@@ -280,7 +421,8 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
   // Confirm ownership modal
   const handleConfirmOwnership = () => {
     setOwnershipModalOpen(false);
-    executeScan(pendingScanUrl, messageInput.trim() || undefined);
+    const shouldSimulate = pendingAction === "simulate";
+    executeScan(pendingScanUrl, messageInput.trim() || undefined, shouldSimulate);
   };
 
   // Chat message send
@@ -330,72 +472,13 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
     }
   };
 
-  // Re-test finding
-  const handleRetestFinding = async (findingId: string) => {
-    setRetestingId(findingId);
-
-    try {
-      const result = await apiClient.retestFinding(
-        activeSession?.activeScanId || "scan-01",
-        findingId
-      );
-
-      // Instant update of finding state to verified_fixed
-      setSessions((prev) =>
-        prev.map((session) => {
-          if (session.id !== activeSessionId) return session;
-
-          const updatedMessages = session.messages.map((msg) => {
-            if (!msg.scanReport) return msg;
-            const updatedFindings = msg.scanReport.findings.map((f) =>
-              f.id === findingId
-                ? {
-                    ...f,
-                    status: "verified_fixed" as const,
-                    verifiedAt: result.verifiedAt,
-                  }
-                : f
-            );
-            return {
-              ...msg,
-              scanReport: {
-                ...msg.scanReport,
-                findings: updatedFindings,
-              },
-            };
-          });
-
-          return { ...session, messages: updatedMessages };
-        })
-      );
-
-      // Assistant notification message
-      const assistantMsg: ChatMessageType = {
-        id: `msg-assistant-retest-${Date.now()}`,
-        sender: "assistant",
-        text: `Automated re-test completed for vulnerability \`${findingId}\`. Safe payload probes confirmed that the patch blocked exploitation.\n\nStatus: **Verified fixed**`,
-        timestamp: getCurrentTimestamp(),
-        quickReplies: ["Show remaining findings", "Download report (PDF)"],
-      };
-
-      setSessions((prev) =>
-        prev.map((s) =>
-          s.id === activeSessionId
-            ? { ...s, messages: [...s.messages, assistantMsg] }
-            : s
-        )
-      );
-
-      onToast("Finding verified fixed with safe exploit re-test", "success");
-    } catch (err: any) {
-      onToast(err.message || "Re-test failed", "error");
-    } finally {
-      setRetestingId(null);
-    }
-  };
-
   // Executive Breach Simulation
-  const handleRunSimulation = async (scanIdOverride?: string) => {
+  const handleRunSimulation = async (
+    scanIdOverride?: string,
+    appliedDefensesOverride?: string[],
+    targetUrlOverride?: string,
+    findingsOverride?: Finding[]
+  ) => {
     const targetScanId = scanIdOverride || activeSession?.activeScanId;
 
     // Locate the active scan report in the current session
@@ -404,7 +487,8 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
       ?.reverse()
       ?.find((m) => m.scanReport)?.scanReport;
 
-    const targetUrl = activeSession?.targetUrl || urlInput.trim();
+    const targetUrl = targetUrlOverride || activeSession?.targetUrl || urlInput.trim();
+    const findings = findingsOverride || currentReport?.findings || [];
 
     if (!targetUrl || !targetScanId) {
       onToast("Please enter a website link and run a scan first before launching AI adversary simulation.", "warning");
@@ -417,7 +501,8 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
         scanId: targetScanId,
         targetUrl,
         githubRepo: githubRepo.trim() || undefined,
-        findings: currentReport?.findings || [],
+        findings,
+        appliedDefenses: appliedDefensesOverride,
       });
       setCurrentSimulation(sim);
       setSimulationModalOpen(true);
@@ -451,7 +536,6 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
     }
   };
 
-
   // Suggestion card clicked from empty state
   const handleSelectSuggestion = (suggestion: { url?: string; prompt: string }) => {
     if (suggestion.url) {
@@ -473,13 +557,13 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
     githubRepo,
     setGithubRepo,
     isScanning,
-    retestingId,
     isSimulating,
     simulationModalOpen,
     setSimulationModalOpen,
     currentSimulation,
     setCurrentSimulation,
     handleRunSimulation,
+    handleSimulateAttack,
     ownershipModalOpen,
     setOwnershipModalOpen,
     pendingScanUrl,
@@ -498,7 +582,6 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
     handleComposerSubmit,
     handleConfirmOwnership,
     handleSendChatMessage,
-    handleRetestFinding,
     handleSelectSuggestion,
   };
 }

@@ -11,9 +11,9 @@ const suggestions = [
   {
     icon: <Shield className="w-4 h-4 text-[var(--ink)]" />,
     title: "Scan my web app",
-    desc: "Run full autonomous security pipeline (FIND -> PROVE -> FIX -> VERIFY)",
+    desc: "Run autonomous security pipeline (FIND -> PROVE -> FIX)",
     url: "https://demo-app.hackfix-labs.dev",
-    prompt: "Scan my web app for OWASP Top 10 vulnerabilities and verify findings.",
+    prompt: "Scan my web app for OWASP Top 10 vulnerabilities and generate fix recommendations.",
   },
   {
     icon: <Search className="w-4 h-4 text-[var(--ink)]" />,

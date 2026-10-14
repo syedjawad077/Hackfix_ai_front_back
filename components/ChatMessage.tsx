@@ -15,9 +15,9 @@ interface ChatMessageProps {
   isLatestAssistantMessage?: boolean;
   onSelectQuickReply?: (reply: string) => void;
   onRegenerate?: () => void;
-  onRetestFinding?: (findingId: string) => void;
-  retestingId?: string | null;
   onOpenSimulation?: (sim: AttackSimulation) => void;
+  onSimulateAttack?: (scanId: string) => void;
+  isSimulating?: boolean;
   onToast: (msg: string, type?: "info" | "success" | "warning" | "error") => void;
 }
 
@@ -26,9 +26,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   isLatestAssistantMessage = false,
   onSelectQuickReply,
   onRegenerate,
-  onRetestFinding,
-  retestingId,
   onOpenSimulation,
+  onSimulateAttack,
+  isSimulating = false,
   onToast,
 }) => {
   const [copied, setCopied] = useState(false);
@@ -83,9 +83,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             <ScanLog logs={message.scanReport.logs} />
             <ReportSummary
               report={message.scanReport}
-              onRetestFinding={onRetestFinding || (() => {})}
-              retestingId={retestingId}
               onToast={onToast}
+              onSimulateAttack={onSimulateAttack}
+              isSimulating={isSimulating}
             />
           </div>
         )}

@@ -146,12 +146,25 @@ class AttackSimulationStage(BaseModel):
     businessImpact: str
     mitigation: str
     status: str = "simulated_risk"  # "simulated_risk" or "blocked_by_patch"
+    
+    # Feature 2: MITRE ATT&CK Mapping
+    mitreTechniqueId: Optional[str] = None  # e.g. "T1189", "T1557.002", "T1552.001"
+    mitreTechniqueName: Optional[str] = None  # e.g. "Drive-by Compromise", "Adversary-in-the-Middle"
+    mitreTactic: Optional[str] = None  # e.g. "Initial Access", "Credential Access", "Impact"
+    
+    # Feature 4: Dual Perspective (Red Team Probe vs Blue Team Detection Log Signature)
+    adversaryPayload: Optional[str] = None  # Educational non-destructive request or curl probe
+    detectionLogSignature: Optional[str] = None  # SIEM / WAF / Server access log pattern
+
+    # Feature 5: What-If defense mapping
+    blockedByDefense: Optional[str] = None  # Name of defensive control that severs this stage
 
 class AttackSimulationRequest(BaseModel):
     scanId: Optional[str] = None
     targetUrl: Optional[str] = None
     githubRepo: Optional[str] = None
     findings: Optional[List[Finding]] = None
+    appliedDefenses: Optional[List[str]] = Field(default_factory=list)
 
 class AttackSimulationResponse(BaseModel):
     scanId: str
@@ -160,4 +173,18 @@ class AttackSimulationResponse(BaseModel):
     executiveSummary: str
     stages: List[AttackSimulationStage]
     boardroomTakeaway: str
+
+    # Feature 1: Sector & Industry Context
+    industrySector: Optional[str] = "Web Application & Cloud Services"
+    complianceImpact: Optional[List[str]] = Field(default_factory=list)
+
+    # Feature 3: Vulnerability Chaining Catalyst
+    chainabilityScore: int = 70
+    chainabilityVerdict: Optional[str] = ""
+    chainCatalysts: Optional[List[str]] = Field(default_factory=list)
+
+    # Feature 5: Interactive What-If Defense Severance state
+    severedAtStage: Optional[int] = None
+    severancePercentage: Optional[int] = 0
+    availableDefenses: Optional[List[str]] = Field(default_factory=list)
 

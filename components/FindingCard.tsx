@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import {
   ChevronDown,
   ChevronRight,
-  ShieldCheck,
   Code2,
   Copy,
   Check,
@@ -17,18 +16,13 @@ import { getSeverityBadgeClasses } from "@/lib/utils";
 
 interface FindingCardProps {
   finding: Finding;
-  onRetest?: (findingId: string) => void;
-  isRetesting?: boolean;
 }
 
-export const FindingCard: React.FC<FindingCardProps> = ({
-  finding,
-}) => {
+export const FindingCard: React.FC<FindingCardProps> = ({ finding }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
 
   const severityStyle = getSeverityBadgeClasses(finding.severity);
-  const isFixed = finding.status === "verified_fixed";
 
   const handleCopyCode = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -38,9 +32,7 @@ export const FindingCard: React.FC<FindingCardProps> = ({
   };
 
   return (
-    <div
-      className="border border-[var(--line)] rounded-[8px] bg-[var(--paper)] interactive-card overflow-hidden my-3"
-    >
+    <div className="border border-[var(--line)] rounded-[8px] bg-[var(--paper)] interactive-card overflow-hidden my-3">
       {/* Header bar / accordion toggle */}
       <div
         role="button"
@@ -79,14 +71,6 @@ export const FindingCard: React.FC<FindingCardProps> = ({
                 <span className="text-[11px] font-semibold text-[var(--ink-soft)] bg-[var(--paper-dark)] px-2 py-0.5 rounded-[8px] border border-[var(--line)]">
                   CVSS {finding.score.toFixed(1)}
                 </span>
-
-                {/* Status indicator */}
-                {isFixed && (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--ink)] bg-[var(--paper-dark)] px-2 py-0.5 rounded-[8px] border border-[var(--line)]">
-                    <ShieldCheck className="w-3.5 h-3.5 text-[#4C9F70]" />
-                    Verified fixed
-                  </span>
-                )}
               </div>
 
               <h4 className="text-sm font-bold text-[var(--ink)] leading-snug">
@@ -94,16 +78,6 @@ export const FindingCard: React.FC<FindingCardProps> = ({
               </h4>
             </div>
           </div>
-
-          {/* Status badge if verified */}
-          {isFixed && (
-            <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-              <span className="text-xs font-semibold text-[#4C9F70] flex items-center gap-1">
-                <Check className="w-4 h-4" />
-                Verified
-              </span>
-            </div>
-          )}
         </div>
 
         {/* Endpoint / File summary row */}
@@ -194,7 +168,7 @@ export const FindingCard: React.FC<FindingCardProps> = ({
               <div className="bg-[var(--paper)] rounded-[8px] border border-[var(--line)] overflow-hidden">
                 <div className="px-3 py-1.5 bg-[var(--paper-dark)] border-b border-[var(--line)] flex items-center justify-between">
                   <span className="text-[10px] font-bold tracking-wider uppercase text-[var(--ink)]">
-                    After (Secured & Verified)
+                    After (Recommended Fix)
                   </span>
                 </div>
                 <pre className="p-3 font-mono text-[11px] text-[var(--ink)] overflow-x-auto leading-relaxed bg-[var(--paper)]">
@@ -207,7 +181,7 @@ export const FindingCard: React.FC<FindingCardProps> = ({
           {/* Footer advisory note */}
           <div className="pt-2 flex items-center justify-between border-t border-[var(--line)]">
             <span className="text-[11px] text-[var(--ink-soft)]">
-              Remediation is advisory. Review and apply this patch to your server configuration or application codebase.
+              Remediation is advisory. Review and apply this recommended fix to your server configuration or application codebase.
             </span>
           </div>
         </div>
@@ -215,4 +189,3 @@ export const FindingCard: React.FC<FindingCardProps> = ({
     </div>
   );
 };
-

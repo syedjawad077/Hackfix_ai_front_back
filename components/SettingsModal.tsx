@@ -81,7 +81,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               Security Testing Engine
             </span>
             <p className="text-[11px] text-[var(--ink-soft)] leading-relaxed">
-              Autonomous 4-Step Pipeline: <strong>FIND</strong> (Passive/Active Recon) &rarr; <strong>PROVE</strong> (Safe sandbox verification) &rarr; <strong>FIX</strong> (AST Diff synthesis) &rarr; <strong>VERIFY</strong> (Regression harness).
+              Autonomous 3-Step Pipeline: <strong>FIND</strong> (Passive/Active Recon) &rarr; <strong>PROVE</strong> (Safe sandbox verification) &rarr; <strong>FIX</strong> (Actionable fix recommendations & diffs).
             </p>
           </div>
         </div>

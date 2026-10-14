@@ -13,7 +13,7 @@ interface ComposerProps {
   githubRepo?: string;
   onGithubRepoChange?: (repo: string) => void;
   onStartScan: (urlOverride?: string) => void;
-  onSimulateAttack?: () => void;
+  onSimulateAttack?: (urlOverride?: string) => void;
   onSubmit: () => void;
   isScanning: boolean;
   isSimulating?: boolean;
@@ -64,23 +64,36 @@ export const Composer: React.FC<ComposerProps> = ({
       return;
     }
     if (!isUrlValid) {
-      onValidationError?.("Please enter a valid website URL starting with https:// or http://");
+      onValidationError?.("Please enter a valid website URL or domain (e.g. youtube.com or https://your-site.com)");
       return;
     }
     onStartScan(url.trim());
     setShowTargetInputs(false);
   };
 
+  const handleSimulateAttackClick = () => {
+    if (!url.trim() && !activeScanId) {
+      onValidationError?.("Please enter a website link to simulate");
+      return;
+    }
+    if (url.trim() && !isUrlValid && !activeScanId) {
+      onValidationError?.("Please enter a valid website URL or domain (e.g. youtube.com or https://your-site.com)");
+      return;
+    }
+    onSimulateAttack?.(url.trim() || undefined);
+    setShowTargetInputs(false);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (isScanning) return;
+      if (isScanning || isSimulating) return;
       onSubmit();
     }
   };
 
   const handleMessageSendClick = () => {
-    if (isScanning) return;
+    if (isScanning || isSimulating) return;
     if (hasMessage) {
       onSubmit();
     } else if (isUrlValid) {
@@ -112,7 +125,7 @@ export const Composer: React.FC<ComposerProps> = ({
           <button
             type="button"
             onClick={() => setShowTargetInputs(!showTargetInputs)}
-            disabled={isScanning}
+            disabled={isScanning || isSimulating}
             className="text-[11px] text-[var(--signal)] hover:text-[var(--signal-dark)] font-medium shrink-0 ml-2 cursor-pointer"
           >
             {showTargetInputs ? "Hide target bar" : "Scan another website"}
@@ -122,33 +135,50 @@ export const Composer: React.FC<ComposerProps> = ({
 
       {/* Main Composer Box */}
       <div className="bg-[var(--paper)] border border-[var(--line)] rounded-[8px] shadow-none overflow-hidden focus-within:ring-2 focus-within:ring-[var(--signal)] focus-within:border-transparent">
-        {/* Target Inputs Section (Website URL + Scan button) */}
+        {/* Target Inputs Section: Website URL + Dual Action Buttons */}
         {(!activeScanId || showTargetInputs) && (
-          <div className="p-3 border-b border-[var(--line)] bg-[var(--paper-dark)]/50 flex flex-col sm:flex-row items-stretch sm:items-end gap-2">
+          <div className="p-3 border-b border-[var(--line)] bg-[var(--paper-dark)]/50 flex flex-col md:flex-row items-stretch md:items-end gap-2">
             <div className="flex-1">
               <UrlInput
                 value={url}
                 onChange={onUrlChange}
                 onClear={() => onUrlChange("")}
-                disabled={isScanning}
+                disabled={isScanning || isSimulating}
                 ownershipVerified={ownershipVerified}
               />
             </div>
-            {/* Start scan button in signal orange */}
-            <button
-              type="button"
-              onClick={handleStartScanClick}
-              disabled={isScanning || !isUrlValid}
-              className={`px-4 py-2 text-xs font-semibold rounded-[8px] flex items-center justify-center gap-1.5 shrink-0 ${
-                isScanning || !isUrlValid
-                  ? "bg-[var(--line)] text-[var(--ink-soft)] cursor-not-allowed opacity-60"
-                  : "bg-[var(--signal)] hover:bg-[var(--signal-dark)] text-white shadow-none cursor-pointer"
-              }`}
-              title="Conduct security scan on this website"
-            >
-              <Shield className="w-3.5 h-3.5" />
-              <span>{isScanning ? "Scanning..." : "Start scan"}</span>
-            </button>
+            {/* Dual explicit choices: Scan Website vs Simulate Attack Path */}
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={handleStartScanClick}
+                disabled={isScanning || isSimulating || !isUrlValid}
+                className={`px-3.5 py-2 text-xs font-semibold rounded-[8px] flex items-center justify-center gap-1.5 shrink-0 transition-colors ${
+                  isScanning || isSimulating || !isUrlValid
+                    ? "bg-[var(--line)] text-[var(--ink-soft)] cursor-not-allowed opacity-60"
+                    : "bg-[var(--ink)] hover:bg-[#2A2A2A] text-white shadow-none cursor-pointer"
+                }`}
+                title="Conduct standard vulnerability scan on this website"
+              >
+                <Shield className="w-3.5 h-3.5 text-white" />
+                <span>{isScanning ? "Scanning..." : "Scan Website"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSimulateAttackClick}
+                disabled={isScanning || isSimulating || !isUrlValid}
+                className={`px-3.5 py-2 text-xs font-semibold rounded-[8px] flex items-center justify-center gap-1.5 shrink-0 transition-colors ${
+                  isScanning || isSimulating || !isUrlValid
+                    ? "bg-[var(--line)] text-[var(--ink-soft)] cursor-not-allowed opacity-60"
+                    : "bg-[var(--signal)] hover:bg-[var(--signal-dark)] text-white shadow-none cursor-pointer"
+                }`}
+                title="Simulate adversary attack path and executive breach scenario"
+              >
+                <Zap className="w-3.5 h-3.5 text-white" />
+                <span>{isSimulating ? "Simulating..." : "Simulate Attack Path"}</span>
+              </button>
+            </div>
           </div>
         )}
 
@@ -161,14 +191,14 @@ export const Composer: React.FC<ComposerProps> = ({
               value={githubRepo}
               onChange={(e) => onGithubRepoChange?.(e.target.value)}
               placeholder="https://github.com/owner/repository (optional source code correlation)"
-              disabled={isScanning}
+              disabled={isScanning || isSimulating}
               className="w-full text-xs font-mono bg-transparent border-0 text-[var(--ink)] placeholder-[var(--ink-soft)]/60 focus:outline-none focus:ring-0"
             />
             {githubRepo && (
               <button
                 type="button"
                 onClick={() => onGithubRepoChange?.("")}
-                disabled={isScanning}
+                disabled={isScanning || isSimulating}
                 className="text-[var(--ink-soft)] hover:text-[var(--ink)] p-0.5 rounded-[8px] cursor-pointer"
                 title="Clear repository"
               >
@@ -193,7 +223,7 @@ export const Composer: React.FC<ComposerProps> = ({
             value={message}
             onChange={(e) => onMessageChange(e.target.value)}
             onKeyDown={handleKeyDown}
-            disabled={isScanning}
+            disabled={isScanning || isSimulating}
             placeholder={
               activeScanId
                 ? "Ask HackFix AI about threats, fixes, OWASP, or your code..."
@@ -209,7 +239,7 @@ export const Composer: React.FC<ComposerProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowTargetInputs(true)}
-                  disabled={isScanning}
+                  disabled={isScanning || isSimulating}
                   className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-[8px] border text-[var(--ink-soft)] bg-[var(--paper-dark)] hover:bg-[#E2DCD1] border-[var(--line)] cursor-pointer"
                   title="Scan another target website"
                 >
@@ -221,7 +251,7 @@ export const Composer: React.FC<ComposerProps> = ({
               <button
                 type="button"
                 onClick={() => setShowGithubInput(!showGithubInput)}
-                disabled={isScanning}
+                disabled={isScanning || isSimulating}
                 className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-[8px] border cursor-pointer ${
                   githubRepo || showGithubInput
                     ? "bg-[var(--paper-dark)] text-[var(--ink)] border-[var(--ink)] font-semibold"
@@ -236,34 +266,28 @@ export const Composer: React.FC<ComposerProps> = ({
                 </span>
               </button>
 
-              {/* Simulate Attack Path Button (activates after scanning) */}
-              <button
-                type="button"
-                onClick={onSimulateAttack}
-                disabled={!activeScanId || isScanning || isSimulating}
-                className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-[8px] border ${
-                  activeScanId
-                    ? "bg-[var(--ink)] text-[var(--paper)] hover:bg-[#2A2A2A] shadow-none cursor-pointer font-semibold border-[var(--ink)]"
-                    : "bg-[var(--paper-dark)] text-[var(--ink-soft)]/50 border-[var(--line)] cursor-not-allowed opacity-60"
-                }`}
-                title={
-                  activeScanId
-                    ? "Run safe AI threat simulation for executives & judges"
-                    : "Scan a website first to simulate attack paths"
-                }
-              >
-                <Zap className="w-3.5 h-3.5 text-[#F2A900]" />
-                <span className="hidden sm:inline text-[11px]">
-                  {isSimulating ? "Simulating..." : "Simulate Attack Path"}
-                </span>
-                <span className="sm:hidden text-[11px]">Simulate</span>
-              </button>
+              {/* Simulate Attack Path Button (ONLY visible when a scan is active) */}
+              {activeScanId && (
+                <button
+                  type="button"
+                  onClick={() => onSimulateAttack?.()}
+                  disabled={isScanning || isSimulating}
+                  className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-[8px] border bg-[var(--paper-dark)] hover:bg-[var(--paper)] text-[var(--ink)] border-[var(--line)] hover:border-[var(--signal)] cursor-pointer font-semibold shadow-none transition-colors"
+                  title="Simulate adversary attack path for this scan"
+                >
+                  <Zap className="w-3.5 h-3.5 text-[var(--signal)]" />
+                  <span className="hidden sm:inline text-[11px]">
+                    {isSimulating ? "Simulating..." : "Simulate Attack Path"}
+                  </span>
+                  <span className="sm:hidden text-[11px]">Simulate</span>
+                </button>
+              )}
             </div>
 
             {/* Circular/Square Send Button with Up-Arrow */}
             <button
               type="button"
-              disabled={isScanning || (!hasMessage && !isUrlValid)}
+              disabled={isScanning || isSimulating || (!hasMessage && !isUrlValid)}
               onClick={handleMessageSendClick}
               className={`w-8 h-8 rounded-[8px] flex items-center justify-center text-white ${
                 hasMessage || isUrlValid

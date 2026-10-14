@@ -41,6 +41,6 @@ async def run_attack_simulation(payload: AttackSimulationRequest):
             detail="A website link must be provided and scanned before running an attack path simulation."
         )
 
-    return await gemini_service.simulate_attack_path(report)
+    return await gemini_service.simulate_attack_path(report, applied_defenses=payload.appliedDefenses or [])
 
 

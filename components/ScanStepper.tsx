@@ -8,11 +8,10 @@ interface ScanStepperProps {
   stepper: ScanStepperState;
 }
 
-const stepLabels: { key: keyof ScanStepperState; label: string; desc: string }[] = [
+const stepLabels: { key: "find" | "prove" | "fix"; label: string; desc: string }[] = [
   { key: "find", label: "FIND", desc: "Discover vulnerabilities" },
   { key: "prove", label: "PROVE", desc: "Safe exploit validation" },
-  { key: "fix", label: "FIX", desc: "Generate diff patches" },
-  { key: "verify", label: "VERIFY", desc: "Automated regression tests" },
+  { key: "fix", label: "FIX", desc: "Generate fix recommendations & diffs" },
 ];
 
 export const ScanStepper: React.FC<ScanStepperProps> = ({ stepper }) => {
@@ -59,11 +58,11 @@ export const ScanStepper: React.FC<ScanStepperProps> = ({ stepper }) => {
           Autonomous Security Pipeline
         </h4>
         <span className="text-[11px] font-medium text-[var(--ink-soft)]">
-          4-Step Verification Engine
+          3-Stage Remediation Engine
         </span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {stepLabels.map(({ key, label, desc }, idx) => {
           const state = stepper[key] || "pending";
           const isDone = state === "done";
@@ -104,4 +103,3 @@ export const ScanStepper: React.FC<ScanStepperProps> = ({ stepper }) => {
     </div>
   );
 };
-

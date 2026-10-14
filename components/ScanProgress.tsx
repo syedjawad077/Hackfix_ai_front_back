@@ -16,7 +16,7 @@ interface ScanProgressProps {
 }
 
 interface StepConfig {
-  key: keyof ScanStepperState;
+  key: "find" | "prove" | "fix";
   title: string;
   label: string;
 }
@@ -35,12 +35,7 @@ const STEPS: StepConfig[] = [
   {
     key: "fix",
     title: "FIX",
-    label: "Preparing fixes",
-  },
-  {
-    key: "verify",
-    title: "VERIFY",
-    label: "Re-testing the fixes",
+    label: "Preparing fix recommendations",
   },
 ];
 
@@ -140,10 +135,10 @@ export function ScanProgress({
         </span>
       </div>
 
-      {/* 4-Step Progress Row: FIND -> PROVE -> FIX -> VERIFY */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+      {/* 3-Step Progress Row: FIND -> PROVE -> FIX */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {STEPS.map((step, idx) => {
-          const state = stepper[step.key];
+          const state: StepState = stepper[step.key] || "pending";
           const statusUi = getStepStatus(state);
 
           return (

