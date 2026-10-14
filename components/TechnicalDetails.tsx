@@ -27,19 +27,19 @@ export function TechnicalDetails({
   };
 
   return (
-    <div className="w-full bg-[#F4F7FB] border border-[#D9E2F0] rounded-2xl overflow-hidden shadow-sm">
+    <div className="w-full bg-[var(--paper-dark)] border border-[var(--line)] rounded-[8px] overflow-hidden">
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="w-full px-5 py-3.5 flex items-center justify-between text-left hover:bg-[#EAF0F8] focus:outline-none focus:bg-[#E3ECFA]"
+        className="w-full px-5 py-3.5 flex items-center justify-between text-left hover:bg-[var(--paper)] focus:outline-none focus:bg-[var(--paper)]"
         aria-expanded={isOpen}
       >
         <div className="flex items-center gap-2.5">
-          <Terminal className="w-4 h-4 text-[#51627A]" />
-          <span className="text-sm font-bold text-[#0B1F3A]">
+          <Terminal className="w-4 h-4 text-[var(--ink-soft)]" />
+          <span className="text-sm font-bold text-[var(--ink)]">
             Technical details ({logs.length} log events)
           </span>
-          <span className="text-xs text-[#51627A] hidden sm:inline">
+          <span className="text-xs text-[var(--ink-soft)] hidden sm:inline">
             — for developers & debugging
           </span>
         </div>
@@ -49,17 +49,17 @@ export function TechnicalDetails({
             <button
               type="button"
               onClick={handleCopyLogs}
-              className="px-2 py-1 text-xs font-semibold text-[#0B1F3A] bg-white border border-[#D9E2F0] rounded-lg hover:bg-[#F4F7FB] flex items-center gap-1"
+              className="px-2 py-1 text-xs font-semibold text-[var(--ink)] bg-[var(--paper)] border border-[var(--line)] rounded-[8px] hover:bg-[var(--paper-dark)] flex items-center gap-1"
               aria-label="Copy logs to clipboard"
             >
               {copied ? (
                 <>
-                  <Check className="w-3 h-3 text-[#2563EB]" />
+                  <Check className="w-3 h-3 text-[var(--ink)]" />
                   <span>Copied</span>
                 </>
               ) : (
                 <>
-                  <Copy className="w-3 h-3 text-[#51627A]" />
+                  <Copy className="w-3 h-3 text-[var(--ink-soft)]" />
                   <span>Copy log</span>
                 </>
               )}
@@ -67,28 +67,28 @@ export function TechnicalDetails({
           )}
 
           {isOpen ? (
-            <ChevronDown className="w-4 h-4 text-[#51627A]" />
+            <ChevronDown className="w-4 h-4 text-[var(--ink-soft)]" />
           ) : (
-            <ChevronRight className="w-4 h-4 text-[#51627A]" />
+            <ChevronRight className="w-4 h-4 text-[var(--ink-soft)]" />
           )}
         </div>
       </button>
 
       {isOpen && (
-        <div className="p-4 bg-[#0B1F3A] text-slate-200 border-t border-[#D9E2F0] font-mono text-xs max-h-72 overflow-y-auto space-y-1.5 select-text">
+        <div className="p-4 bg-[var(--ink)] text-[var(--paper)] border-t border-[var(--line)] font-mono text-xs max-h-72 overflow-y-auto space-y-1.5 select-text">
           {logs.map((log) => {
-            let levelColor = "text-slate-400";
-            if (log.level === "warn") levelColor = "text-amber-400";
-            if (log.level === "success") levelColor = "text-emerald-400";
-            if (log.level === "info") levelColor = "text-sky-400";
+            let levelColor = "text-[var(--ink-soft)]";
+            if (log.level === "warn") levelColor = "text-[#F2A900]";
+            if (log.level === "success") levelColor = "text-[#4C9F70]";
+            if (log.level === "info") levelColor = "text-[var(--paper)]";
 
             return (
-              <div key={log.id} className="leading-relaxed flex items-start gap-2">
-                <span className="text-slate-500 shrink-0">[{log.timestamp}]</span>
+              <div key={log.id} className="leading-relaxed flex items-start gap-2 scan-log-line">
+                <span className="text-[var(--ink-soft)] shrink-0">[{log.timestamp}]</span>
                 <span className={`uppercase font-semibold shrink-0 ${levelColor}`}>
                   [{log.level}]
                 </span>
-                <span className="text-slate-200 break-all">{log.message}</span>
+                <span className="text-[var(--paper)] break-all">{log.message}</span>
               </div>
             );
           })}

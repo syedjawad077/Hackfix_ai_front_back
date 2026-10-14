@@ -39,11 +39,7 @@ export const FindingCard: React.FC<FindingCardProps> = ({
 
   return (
     <div
-      className={`border rounded-xl bg-white shadow-soft overflow-hidden my-3 ${
-        isFixed
-          ? "border-[#D9E2F0] bg-white"
-          : "border-[#D9E2F0]"
-      }`}
+      className="border border-[var(--line)] rounded-[8px] bg-[var(--paper)] interactive-card overflow-hidden my-3"
     >
       {/* Header bar / accordion toggle */}
       <div
@@ -56,12 +52,12 @@ export const FindingCard: React.FC<FindingCardProps> = ({
             setIsExpanded(!isExpanded);
           }
         }}
-        className="p-4 cursor-pointer hover:bg-[#F4F7FB] select-none text-left focus:outline-none focus:ring-1 focus:ring-[#2563EB]"
+        className="p-4 cursor-pointer hover:bg-[var(--paper-dark)] select-none text-left focus:outline-none focus:ring-1 focus:ring-[var(--signal)]"
         aria-expanded={isExpanded}
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-start gap-2.5 min-w-0">
-            <span className="mt-0.5 text-[#51627A]">
+            <span className="mt-0.5 text-[var(--ink-soft)]">
               {isExpanded ? (
                 <ChevronDown className="w-4 h-4" />
               ) : (
@@ -73,27 +69,27 @@ export const FindingCard: React.FC<FindingCardProps> = ({
               <div className="flex flex-wrap items-center gap-2 mb-1">
                 {/* Severity Badge */}
                 <span
-                  className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider border ${severityStyle.badge}`}
+                  className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[8px] text-[11px] font-bold uppercase tracking-wider border ${severityStyle.badge}`}
                 >
                   <span className={`w-1.5 h-1.5 rounded-full ${severityStyle.dot}`} />
                   {severityStyle.label}
                 </span>
 
                 {/* Score */}
-                <span className="text-[11px] font-semibold text-[#51627A] bg-[#F4F7FB] px-2 py-0.5 rounded border border-[#D9E2F0]">
+                <span className="text-[11px] font-semibold text-[var(--ink-soft)] bg-[var(--paper-dark)] px-2 py-0.5 rounded-[8px] border border-[var(--line)]">
                   CVSS {finding.score.toFixed(1)}
                 </span>
 
                 {/* Status indicator */}
                 {isFixed && (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0F2A5C] bg-[#E3ECFA] px-2 py-0.5 rounded border border-[#D9E2F0]">
-                    <ShieldCheck className="w-3.5 h-3.5 text-[#2563EB]" />
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--ink)] bg-[var(--paper-dark)] px-2 py-0.5 rounded-[8px] border border-[var(--line)]">
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#4C9F70]" />
                     Verified fixed
                   </span>
                 )}
               </div>
 
-              <h4 className="text-sm font-bold text-[#0B1F3A] leading-snug">
+              <h4 className="text-sm font-bold text-[var(--ink)] leading-snug">
                 {finding.title}
               </h4>
             </div>
@@ -102,7 +98,7 @@ export const FindingCard: React.FC<FindingCardProps> = ({
           {/* Status badge if verified */}
           {isFixed && (
             <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-              <span className="text-xs font-semibold text-[#2563EB] flex items-center gap-1">
+              <span className="text-xs font-semibold text-[#4C9F70] flex items-center gap-1">
                 <Check className="w-4 h-4" />
                 Verified
               </span>
@@ -111,15 +107,15 @@ export const FindingCard: React.FC<FindingCardProps> = ({
         </div>
 
         {/* Endpoint / File summary row */}
-        <div className="mt-2.5 flex flex-wrap items-center gap-4 text-xs text-[#51627A]">
+        <div className="mt-2.5 flex flex-wrap items-center gap-4 text-xs text-[var(--ink-soft)]">
           <div className="flex items-center gap-1.5 font-mono">
-            <Globe className="w-3.5 h-3.5 text-[#2563EB]" />
-            <span className="text-[#0B1F3A]">{finding.endpoint}</span>
+            <Globe className="w-3.5 h-3.5 text-[var(--ink-soft)]" />
+            <span className="text-[var(--ink)]">{finding.endpoint}</span>
           </div>
           {finding.file && (
             <div className="flex items-center gap-1.5 font-mono">
-              <FileCode className="w-3.5 h-3.5 text-[#51627A]" />
-              <span className="text-[#51627A]">{finding.file}</span>
+              <FileCode className="w-3.5 h-3.5 text-[var(--ink-soft)]" />
+              <span className="text-[var(--ink-soft)]">{finding.file}</span>
             </div>
           )}
         </div>
@@ -127,44 +123,44 @@ export const FindingCard: React.FC<FindingCardProps> = ({
 
       {/* Expanded Details Body */}
       {isExpanded && (
-        <div className="border-t border-[#D9E2F0] p-4 bg-[#F4F7FB]/50 space-y-4 text-xs">
+        <div className="border-t border-[var(--line)] p-4 bg-[var(--paper-dark)] space-y-4 text-xs">
           {/* Plain language explanation */}
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#51627A] block mb-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--ink-soft)] block mb-1">
               Plain-Language Explanation
             </span>
-            <p className="text-[#0B1F3A] leading-relaxed bg-white p-3 rounded-lg border border-[#D9E2F0]">
+            <p className="text-[var(--ink)] leading-relaxed bg-[var(--paper)] p-3 rounded-[8px] border border-[var(--line)]">
               {finding.explanation}
             </p>
           </div>
 
           {/* Proof / Safe validation result */}
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#51627A] flex items-center gap-1 mb-1">
-              <AlertTriangle className="w-3.5 h-3.5 text-[#0F2A5C]" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--ink-soft)] flex items-center gap-1 mb-1">
+              <AlertTriangle className="w-3.5 h-3.5 text-[var(--ink)]" />
               Proof (Safe Validation Result)
             </span>
-            <div className="bg-[#E3ECFA]/60 p-3 rounded-lg border border-[#D9E2F0] text-[#0B1F3A] leading-relaxed">
-              <p className="font-mono text-[11px] text-[#0B1F3A]">{finding.proof}</p>
+            <div className="bg-[var(--paper)] p-3 rounded-[8px] border border-[var(--line)] text-[var(--ink)] leading-relaxed">
+              <p className="font-mono text-[11px] text-[var(--ink)]">{finding.proof}</p>
             </div>
           </div>
 
           {/* Recommended fix with before / after diff */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#51627A] flex items-center gap-1">
-                <Code2 className="w-3.5 h-3.5 text-[#2563EB]" />
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--ink-soft)] flex items-center gap-1">
+                <Code2 className="w-3.5 h-3.5 text-[var(--ink)]" />
                 Recommended Fix & Diff
               </span>
               <button
                 type="button"
                 onClick={handleCopyCode}
-                className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#0F2A5C] bg-white hover:bg-[#F4F7FB] px-2.5 py-1 rounded border border-[#D9E2F0]"
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--ink)] bg-[var(--paper)] hover:bg-[var(--paper-dark)] px-2.5 py-1 rounded-[8px] border border-[var(--line)]"
                 aria-label="Copy secure code"
               >
                 {copiedCode ? (
                   <>
-                    <Check className="w-3 h-3 text-[#2563EB]" />
+                    <Check className="w-3 h-3 text-[var(--ink)]" />
                     Copied fix
                   </>
                 ) : (
@@ -176,32 +172,32 @@ export const FindingCard: React.FC<FindingCardProps> = ({
               </button>
             </div>
 
-            <p className="text-[11px] text-[#51627A] mb-2 leading-relaxed">
+            <p className="text-[11px] text-[var(--ink-soft)] mb-2 leading-relaxed">
               {finding.recommendedFix.explanation}
             </p>
 
             {/* Before / After Diff Code Block */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {/* Before */}
-              <div className="bg-white rounded-lg border border-[#D9E2F0] overflow-hidden">
+              <div className="bg-[var(--paper)] rounded-[8px] border border-[#FCA5A5] overflow-hidden">
                 <div className="px-3 py-1.5 bg-[#FEE2E2]/60 border-b border-[#FCA5A5]/60 flex items-center justify-between">
                   <span className="text-[10px] font-bold tracking-wider uppercase text-[#991B1B]">
                     Before (Vulnerable)
                   </span>
                 </div>
-                <pre className="p-3 font-mono text-[11px] text-[#0B1F3A] overflow-x-auto leading-relaxed bg-[#FFFFFF]">
+                <pre className="p-3 font-mono text-[11px] text-[#991B1B] overflow-x-auto leading-relaxed bg-[var(--paper)]">
                   <code>{finding.recommendedFix.beforeCode}</code>
                 </pre>
               </div>
 
               {/* After */}
-              <div className="bg-white rounded-lg border border-[#D9E2F0] overflow-hidden">
-                <div className="px-3 py-1.5 bg-[#E3ECFA] border-b border-[#D9E2F0] flex items-center justify-between">
-                  <span className="text-[10px] font-bold tracking-wider uppercase text-[#0F2A5C]">
+              <div className="bg-[var(--paper)] rounded-[8px] border border-[var(--line)] overflow-hidden">
+                <div className="px-3 py-1.5 bg-[var(--paper-dark)] border-b border-[var(--line)] flex items-center justify-between">
+                  <span className="text-[10px] font-bold tracking-wider uppercase text-[var(--ink)]">
                     After (Secured & Verified)
                   </span>
                 </div>
-                <pre className="p-3 font-mono text-[11px] text-[#0B1F3A] overflow-x-auto leading-relaxed bg-[#FFFFFF]">
+                <pre className="p-3 font-mono text-[11px] text-[var(--ink)] overflow-x-auto leading-relaxed bg-[var(--paper)]">
                   <code>{finding.recommendedFix.afterCode}</code>
                 </pre>
               </div>
@@ -209,8 +205,8 @@ export const FindingCard: React.FC<FindingCardProps> = ({
           </div>
 
           {/* Footer advisory note */}
-          <div className="pt-2 flex items-center justify-between border-t border-[#D9E2F0]">
-            <span className="text-[11px] text-[#51627A]">
+          <div className="pt-2 flex items-center justify-between border-t border-[var(--line)]">
+            <span className="text-[11px] text-[var(--ink-soft)]">
               Remediation is advisory. Review and apply this patch to your server configuration or application codebase.
             </span>
           </div>

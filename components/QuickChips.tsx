@@ -23,7 +23,7 @@ export function QuickChips({
           type="button"
           onClick={() => !disabled && onSelectChip(chip)}
           disabled={disabled}
-          className="text-xs font-semibold text-[#0F2A5C] bg-[#E3ECFA] hover:bg-[#D5E4F8] border border-[#BACADF] px-2.5 py-1 rounded-full cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-[#2563EB] disabled:opacity-50 disabled:cursor-not-allowed text-left"
+          className="text-xs font-semibold text-[var(--ink)] bg-[var(--paper-dark)] hover:bg-[var(--paper)] border border-[var(--line)] px-2.5 py-1 rounded-[8px] cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-[var(--signal)] disabled:opacity-50 disabled:cursor-not-allowed text-left"
         >
           {chip}
         </button>

@@ -3,42 +3,118 @@
 @tailwind utilities;
 
 :root {
-  --background: #FFFFFF;
-  --foreground: #0B1F3A;
+  /* Warm Paper + Signal Orange Palette */
+  --paper: #F5F1EA;
+  --paper-dark: #EAE4D9;
+  --ink: #1B1B1B;
+  --ink-soft: #5B574F;
+  --line: #D9D2C4;
+  --signal: #E8591A;
+  --signal-dark: #C94810;
+
+  /* Severity Tokens */
+  --severity-critical: #D7263D;
+  --severity-high: #E8591A;
+  --severity-medium: #F2A900;
+  --severity-low: #4C9F70;
+
+  --background: var(--paper);
+  --foreground: var(--ink);
 }
 
 body {
-  color: #0B1F3A;
-  background: #FFFFFF;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: var(--ink);
+  background-color: var(--paper);
+  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Strict No Animation Guarantee */
-*, *::before, *::after {
-  animation: none !important;
-  transition: none !important;
+/* 1. Buttons: darken on hover, move down 2px when pressed */
+button {
+  transition: background-color 180ms ease-out, border-color 180ms ease-out, color 180ms ease-out, transform 150ms ease-out;
+}
+button:active:not(:disabled) {
+  transform: translateY(2px);
 }
 
-/* Custom Scrollbar */
+/* 2. Cards: on hover, border turns orange and card lifts 2px */
+.interactive-card {
+  transition: border-color 200ms ease-out, transform 200ms ease-out;
+}
+.interactive-card:hover {
+  border-color: var(--signal);
+  transform: translateY(-2px);
+}
+
+/* 3. Pipeline active step: slow pulsing ring */
+@keyframes pipelinePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(232, 89, 26, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(232, 89, 26, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(232, 89, 26, 0);
+  }
+}
+.pipeline-current-step {
+  border-color: var(--signal) !important;
+  animation: pipelinePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* 4. Scan log lines: subtle slide-up (6px) and fade-in */
+@keyframes logSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.scan-log-line {
+  animation: logSlideUp 200ms ease-out both;
+}
+
+/* 5. Sidebar items: subtle hover background change */
+.sidebar-item {
+  transition: background-color 180ms ease-out, border-color 180ms ease-out, color 180ms ease-out;
+}
+
+/* Custom Flat Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #F4F7FB;
+  background: var(--paper);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #D9E2F0;
-  border-radius: 9999px;
+  background: var(--line);
+  border-radius: 8px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #BACADF;
+  background: var(--ink-soft);
 }
 
+/* 6. Disable animations for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transform: none !important;
+  }
+  .pipeline-current-step,
+  .scan-log-line {
+    animation: none !important;
+  }
+}

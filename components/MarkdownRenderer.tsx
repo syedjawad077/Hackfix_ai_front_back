@@ -17,20 +17,20 @@ const CodeBlock: React.FC<{ language: string; code: string }> = ({ language, cod
   };
 
   return (
-    <div className="my-3 rounded-lg overflow-hidden border border-[#D9E2F0] bg-[#0B1F3A] text-white shadow-soft">
-      <div className="flex items-center justify-between px-3 py-1.5 bg-[#071324] border-b border-[#1E3A66] text-xs font-mono text-[#D9E2F0]">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-[#93C5FD]">
+    <div className="my-3 rounded-[8px] overflow-hidden border border-[var(--line)] bg-[var(--ink)] text-[var(--paper)]">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-[#111111] border-b border-[var(--ink-soft)]/40 text-xs font-mono text-[var(--paper-dark)]">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--paper)]">
           {language || "code"}
         </span>
         <button
           type="button"
           onClick={handleCopy}
-          className="inline-flex items-center gap-1 text-[11px] text-[#D9E2F0] hover:text-white px-2 py-0.5 rounded hover:bg-[#1E3A66] cursor-pointer"
+          className="inline-flex items-center gap-1 text-[11px] text-[var(--paper-dark)] hover:text-white px-2 py-0.5 rounded-[8px] hover:bg-white/10 cursor-pointer"
           title="Copy code"
         >
           {copied ? (
             <>
-              <Check className="w-3.5 h-3.5 text-[#60A5FA]" />
+              <Check className="w-3.5 h-3.5 text-[var(--paper)]" />
               <span>Copied</span>
             </>
           ) : (
@@ -41,7 +41,7 @@ const CodeBlock: React.FC<{ language: string; code: string }> = ({ language, cod
           )}
         </button>
       </div>
-      <pre className="p-3 overflow-x-auto text-xs font-mono leading-relaxed text-[#F4F7FB]">
+      <pre className="p-3 overflow-x-auto text-xs font-mono leading-relaxed text-[var(--paper)]">
         <code>{code}</code>
       </pre>
     </div>
@@ -63,7 +63,7 @@ function renderInline(text: string): React.ReactNode {
       return (
         <code
           key={idx}
-          className="font-mono text-xs bg-[#F4F7FB] text-[#0F2A5C] px-1.5 py-0.5 rounded border border-[#D9E2F0] font-semibold"
+          className="font-mono text-xs bg-[var(--paper-dark)] text-[var(--ink)] px-1.5 py-0.5 rounded-[4px] border border-[var(--line)] font-semibold"
         >
           {part.slice(1, -1)}
         </code>
@@ -73,7 +73,7 @@ function renderInline(text: string): React.ReactNode {
     // Bold
     if (part.startsWith("**") && part.endsWith("**") && part.length >= 4) {
       return (
-        <strong key={idx} className="font-bold text-[#0B1F3A]">
+        <strong key={idx} className="font-bold text-[var(--ink)]">
           {part.slice(2, -2)}
         </strong>
       );
@@ -82,7 +82,7 @@ function renderInline(text: string): React.ReactNode {
     // Italic
     if (part.startsWith("*") && part.endsWith("*") && part.length >= 2) {
       return (
-        <em key={idx} className="italic text-[#0B1F3A]">
+        <em key={idx} className="italic text-[var(--ink)]">
           {part.slice(1, -1)}
         </em>
       );
@@ -97,7 +97,7 @@ function renderInline(text: string): React.ReactNode {
           href={linkMatch[2]}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[#2563EB] hover:text-[#1D4ED8] underline font-medium"
+          className="text-[var(--ink)] hover:text-[var(--signal)] underline font-medium"
         >
           {linkMatch[1]}
         </a>
@@ -125,7 +125,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
     if (currentListType && currentListItems.length > 0) {
       if (currentListType === "ul") {
         elements.push(
-          <ul key={`ul-${elements.length}`} className="my-2 space-y-1 list-disc pl-5 text-sm leading-relaxed text-[#0B1F3A]">
+          <ul key={`ul-${elements.length}`} className="my-2 space-y-1 list-disc pl-5 text-sm leading-relaxed text-[var(--ink)]">
             {currentListItems.map((item, i) => (
               <li key={i}>{item}</li>
             ))}
@@ -133,7 +133,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
         );
       } else {
         elements.push(
-          <ol key={`ol-${elements.length}`} className="my-2 space-y-1 list-decimal pl-5 text-sm leading-relaxed text-[#0B1F3A]">
+          <ol key={`ol-${elements.length}`} className="my-2 space-y-1 list-decimal pl-5 text-sm leading-relaxed text-[var(--ink)]">
             {currentListItems.map((item, i) => (
               <li key={i}>{item}</li>
             ))}
@@ -186,7 +186,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
     if (trimmed.startsWith("#### ")) {
       flushList();
       elements.push(
-        <h4 key={`h4-${elements.length}`} className="text-xs font-bold text-[#0F2A5C] uppercase tracking-wider mt-3 mb-1">
+        <h4 key={`h4-${elements.length}`} className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider mt-3 mb-1">
           {renderInline(trimmed.slice(5))}
         </h4>
       );
@@ -196,8 +196,8 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
     if (trimmed.startsWith("### ")) {
       flushList();
       elements.push(
-        <h3 key={`h3-${elements.length}`} className="text-sm font-bold text-[#0B1F3A] mt-3.5 mb-1.5 flex items-center gap-1.5">
-          <span className="w-1.5 h-3.5 bg-[#2563EB] rounded-full inline-block shrink-0" />
+        <h3 key={`h3-${elements.length}`} className="text-sm font-bold text-[var(--ink)] mt-3.5 mb-1.5 flex items-center gap-1.5">
+          <span className="w-1.5 h-3.5 bg-[var(--ink)] rounded-[4px] inline-block shrink-0" />
           <span>{renderInline(trimmed.slice(4))}</span>
         </h3>
       );
@@ -207,7 +207,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
     if (trimmed.startsWith("## ")) {
       flushList();
       elements.push(
-        <h2 key={`h2-${elements.length}`} className="text-base font-bold text-[#0B1F3A] mt-4 mb-2 pb-1 border-b border-[#D9E2F0]">
+        <h2 key={`h2-${elements.length}`} className="text-base font-bold text-[var(--ink)] mt-4 mb-2 pb-1 border-b border-[var(--line)]">
           {renderInline(trimmed.slice(3))}
         </h2>
       );
@@ -217,7 +217,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
     if (trimmed.startsWith("# ")) {
       flushList();
       elements.push(
-        <h1 key={`h1-${elements.length}`} className="text-lg font-bold text-[#0B1F3A] mt-4 mb-2">
+        <h1 key={`h1-${elements.length}`} className="text-lg font-bold text-[var(--ink)] mt-4 mb-2">
           {renderInline(trimmed.slice(2))}
         </h1>
       );
@@ -230,7 +230,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
       elements.push(
         <blockquote
           key={`quote-${elements.length}`}
-          className="my-2 border-l-3 border-[#2563EB] pl-3 py-1 bg-[#F4F7FB] text-xs text-[#0F2A5C] italic rounded-r"
+          className="my-2 border-l-2 border-[var(--ink)] pl-3 py-1 bg-[var(--paper-dark)] text-xs text-[var(--ink)] italic rounded-r-[8px]"
         >
           {renderInline(trimmed.slice(2))}
         </blockquote>
@@ -263,7 +263,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
     // Regular Paragraph
     flushList();
     elements.push(
-      <p key={`p-${elements.length}`} className="my-2 text-sm leading-relaxed text-[#0B1F3A]">
+      <p key={`p-${elements.length}`} className="my-2 text-sm leading-relaxed text-[var(--ink)]">
         {renderInline(line)}
       </p>
     );

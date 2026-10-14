@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Copy, Check, RotateCw, Shield } from "lucide-react";
-import { ChatMessage as ChatMessageType, Finding, ScanReport, AttackSimulation } from "@/lib/types";
+import { ChatMessage as ChatMessageType, ScanReport, AttackSimulation } from "@/lib/types";
 import { ScanStepper } from "./ScanStepper";
 import { ScanLog } from "./ScanLog";
 import { ReportSummary } from "./ReportSummary";
@@ -44,9 +44,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   if (isUser) {
     return (
       <div className="flex justify-end my-4">
-        <div className="max-w-[85%] sm:max-w-[75%] bg-[#E3ECFA] text-[#0B1F3A] rounded-2xl rounded-tr-sm px-4 py-3 shadow-soft text-sm leading-relaxed border border-[#D9E2F0]">
-          <p className="whitespace-pre-wrap">{message.text}</p>
-          <span className="block text-[10px] text-[#51627A] text-right mt-1 font-mono">
+        <div className="max-w-[85%] sm:max-w-[75%] bg-[var(--paper-dark)] text-[var(--ink)] rounded-[8px] rounded-tr-[2px] px-4 py-3 shadow-none text-sm leading-relaxed border border-[var(--line)]">
+          <p className="whitespace-pre-wrap font-sans">{message.text}</p>
+          <span className="block text-[10px] text-[var(--ink-soft)] text-right mt-1 font-mono">
             {message.timestamp}
           </span>
         </div>
@@ -54,25 +54,25 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     );
   }
 
-  // Assistant Message (left-aligned, no bubble, round dark-blue logo avatar)
+  // Assistant Message (left-aligned, no bubble, near-black ink logo avatar)
   return (
     <div className="flex items-start gap-3 my-6 group">
-      {/* Round dark-blue logo avatar */}
-      <div className="w-8 h-8 rounded-full bg-[#0F2A5C] text-white flex items-center justify-center shrink-0 shadow-soft">
-        <Shield className="w-4 h-4 text-white" />
+      {/* Near-black ink logo avatar */}
+      <div className="w-8 h-8 rounded-[8px] bg-[var(--ink)] text-[var(--paper)] flex items-center justify-center shrink-0 shadow-none border border-[var(--line)]">
+        <Shield className="w-4 h-4 text-[var(--paper)]" />
       </div>
 
       {/* Message content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          <span className="font-bold text-xs text-[#0B1F3A]">HackFix AI</span>
-          <span className="text-[10px] text-[#51627A] font-mono">
+          <span className="font-bold text-xs text-[var(--ink)]">HackFix AI</span>
+          <span className="text-[10px] text-[var(--ink-soft)] font-mono">
             {message.timestamp}
           </span>
         </div>
 
         {/* Text body with full markdown rendering for headings, code blocks, bold, lists */}
-        <div className="text-sm text-[#0B1F3A] leading-relaxed">
+        <div className="text-sm text-[var(--ink)] leading-relaxed font-sans">
           <MarkdownRenderer content={message.text} />
         </div>
 
@@ -105,12 +105,12 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           <button
             type="button"
             onClick={handleCopyText}
-            className="inline-flex items-center gap-1 text-xs text-[#51627A] hover:text-[#0B1F3A] p-1.5 rounded hover:bg-[#F4F7FB]"
+            className="inline-flex items-center gap-1 text-xs text-[var(--ink-soft)] hover:text-[var(--ink)] p-1.5 rounded-[8px] hover:bg-[var(--paper-dark)]"
             aria-label="Copy assistant reply"
           >
             {copied ? (
               <>
-                <Check className="w-3.5 h-3.5 text-[#2563EB]" />
+                <Check className="w-3.5 h-3.5 text-[var(--signal)]" />
                 <span className="text-[11px]">Copied</span>
               </>
             ) : (
@@ -125,7 +125,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             <button
               type="button"
               onClick={onRegenerate}
-              className="inline-flex items-center gap-1 text-xs text-[#51627A] hover:text-[#0B1F3A] p-1.5 rounded hover:bg-[#F4F7FB]"
+              className="inline-flex items-center gap-1 text-xs text-[var(--ink-soft)] hover:text-[var(--ink)] p-1.5 rounded-[8px] hover:bg-[var(--paper-dark)]"
               aria-label="Regenerate reply"
             >
               <RotateCw className="w-3.5 h-3.5" />
@@ -150,4 +150,3 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     </div>
   );
 };
-

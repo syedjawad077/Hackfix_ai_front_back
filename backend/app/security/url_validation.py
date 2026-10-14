@@ -23,6 +23,14 @@ def validate_target_url(raw_url: str) -> Tuple[bool, str, Optional[str]]:
     except Exception as e:
         return False, f"Malformed URL syntax: {str(e)}", None
 
+    # If user provided a domain/host without scheme (e.g. 'youtube.com'), default to https://
+    if not parsed.scheme and not url.startswith("//") and ":" not in url.split("/")[0]:
+        url = "https://" + url
+        try:
+            parsed = urllib.parse.urlparse(url)
+        except Exception as e:
+            return False, f"Malformed URL syntax: {str(e)}", None
+
     # Scheme check: HTTP and HTTPS only
     scheme = (parsed.scheme or "").lower()
     if scheme not in ("http", "https"):

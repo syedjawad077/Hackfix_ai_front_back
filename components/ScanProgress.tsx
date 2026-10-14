@@ -56,65 +56,65 @@ export function ScanProgress({
   const getStepStatus = (state: StepState) => {
     if (state === "done") {
       return {
-        icon: <CheckCircle2 className="w-6 h-6 text-[#2563EB]" />,
+        icon: <CheckCircle2 className="w-6 h-6 text-[var(--ink)]" />,
         badge: (
-          <span className="text-[11px] font-bold text-[#2563EB] bg-[#DBEAFE] px-2 py-0.5 rounded-full">
+          <span className="text-[11px] font-bold text-[var(--ink)] bg-[var(--paper-dark)] border border-[var(--line)] px-2 py-0.5 rounded-[8px]">
             Done
           </span>
         ),
-        cardBorder: "border-[#93C5FD] bg-white",
+        cardBorder: "border-[var(--ink)] bg-[var(--paper)]",
       };
     }
     if (state === "running") {
       return {
         icon: (
-          <div className="w-6 h-6 rounded-full bg-[#0F2A5C] text-white flex items-center justify-center text-xs font-bold">
+          <div className="w-6 h-6 rounded-[8px] bg-[var(--signal)] text-white flex items-center justify-center text-xs font-bold">
             •
           </div>
         ),
         badge: (
-          <span className="text-[11px] font-bold text-[#0F2A5C] bg-[#E3ECFA] px-2 py-0.5 rounded-full">
+          <span className="text-[11px] font-bold text-[var(--signal)] bg-[var(--paper)] border border-[var(--signal)] px-2 py-0.5 rounded-[8px]">
             Running...
           </span>
         ),
-        cardBorder: "border-[#2563EB] bg-white ring-2 ring-[#E3ECFA]",
+        cardBorder: "border-[var(--signal)] bg-[var(--paper)] pipeline-current-step",
       };
     }
     // pending
     return {
-      icon: <Circle className="w-6 h-6 text-[#BACADF]" />,
+      icon: <Circle className="w-6 h-6 text-[var(--line)]" />,
       badge: (
-        <span className="text-[11px] font-medium text-[#51627A] bg-[#F4F7FB] px-2 py-0.5 rounded-full">
+        <span className="text-[11px] font-medium text-[var(--ink-soft)] bg-[var(--paper-dark)] px-2 py-0.5 rounded-[8px]">
           Pending
         </span>
       ),
-      cardBorder: "border-[#D9E2F0] bg-[#F4F7FB]/50",
+      cardBorder: "border-[var(--line)] bg-[var(--paper-dark)] opacity-50",
     };
   };
 
   return (
     <div className="w-full space-y-6">
       {/* Target Info Header */}
-      <div className="bg-[#F4F7FB] border border-[#D9E2F0] rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-[var(--paper-dark)] border border-[var(--line)] rounded-[8px] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-[#51627A]">
+          <span className="text-xs font-bold uppercase tracking-wider text-[var(--ink-soft)]">
             Current Scan
           </span>
           <div className="flex items-center gap-2 mt-1">
-            <Globe className="w-5 h-5 text-[#2563EB] shrink-0" />
-            <h2 className="text-base sm:text-lg font-bold text-[#0B1F3A] break-all">
+            <Globe className="w-5 h-5 text-[var(--ink-soft)] shrink-0" />
+            <h2 className="text-base sm:text-lg font-bold font-mono text-[var(--ink)] break-all">
               {targetUrl}
             </h2>
           </div>
           {githubRepo && (
-            <div className="flex items-center gap-1.5 text-xs text-[#51627A] mt-1.5">
-              <Github className="w-3.5 h-3.5 text-[#0F2A5C]" />
+            <div className="flex items-center gap-1.5 text-xs text-[var(--ink-soft)] mt-1.5">
+              <Github className="w-3.5 h-3.5 text-[var(--ink)]" />
               <span>Linked GitHub repository: {githubRepo}</span>
             </div>
           )}
           {zipFileName && (
-            <div className="flex items-center gap-1.5 text-xs text-[#51627A] mt-1.5">
-              <FileArchive className="w-3.5 h-3.5 text-[#0F2A5C]" />
+            <div className="flex items-center gap-1.5 text-xs text-[var(--ink-soft)] mt-1.5">
+              <FileArchive className="w-3.5 h-3.5 text-[var(--ink)]" />
               <span>Project files included: {zipFileName}</span>
             </div>
           )}
@@ -124,7 +124,7 @@ export function ScanProgress({
           <button
             type="button"
             onClick={onCompleteScan}
-            className="self-start sm:self-center inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-[#0F2A5C] bg-white hover:bg-[#E3ECFA] border border-[#D9E2F0] rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+            className="self-start sm:self-center inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-[var(--ink)] bg-[var(--paper)] hover:bg-[var(--paper-dark)] border border-[var(--line)] rounded-[8px] focus:outline-none focus:ring-1 focus:ring-[var(--signal)]"
           >
             <span>Skip to results</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -133,9 +133,9 @@ export function ScanProgress({
       </div>
 
       {/* Progress status banner (Plain static text, NO spinner/animation) */}
-      <div className="bg-[#E3ECFA] border border-[#BACADF] rounded-xl px-4 py-3 flex items-center justify-between text-xs sm:text-sm text-[#0F2A5C] font-semibold">
+      <div className="bg-[var(--paper-dark)] border border-[var(--line)] rounded-[8px] px-4 py-3 flex items-center justify-between text-xs sm:text-sm text-[var(--ink)] font-semibold">
         <span>Status: {currentStepName}</span>
-        <span className="text-xs font-mono font-normal text-[#51627A]">
+        <span className="text-xs font-mono font-normal text-[var(--ink-soft)]">
           Safe sandbox testing
         </span>
       </div>
@@ -149,14 +149,14 @@ export function ScanProgress({
           return (
             <div
               key={step.key}
-              className={`border rounded-2xl p-4 flex flex-col justify-between gap-3 ${statusUi.cardBorder}`}
+              className={`border rounded-[8px] p-4 flex flex-col justify-between gap-3 transition-all ${statusUi.cardBorder}`}
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-bold text-[#51627A]">
+                  <span className="text-xs font-mono font-bold text-[var(--ink-soft)]">
                     0{idx + 1}
                   </span>
-                  <span className="text-xs font-bold text-[#0B1F3A] tracking-wider">
+                  <span className="text-xs font-bold text-[var(--ink)] tracking-wider">
                     {step.title}
                   </span>
                 </div>
@@ -164,7 +164,7 @@ export function ScanProgress({
               </div>
 
               <div>
-                <p className="text-xs text-[#51627A] font-medium leading-snug">
+                <p className="text-xs text-[var(--ink-soft)] font-medium leading-snug">
                   {step.label}
                 </p>
               </div>

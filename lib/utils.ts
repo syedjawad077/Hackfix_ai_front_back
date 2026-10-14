@@ -15,11 +15,21 @@ export function formatBytes(bytes: number, decimals = 1): string {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 }
 
+export function normalizeUrl(urlString: string): string {
+  const trimmed = (urlString || "").trim();
+  if (!trimmed) return "";
+  if (!/^https?:\/\//i.test(trimmed)) {
+    return `https://${trimmed}`;
+  }
+  return trimmed;
+}
+
 export function isValidUrl(urlString: string): boolean {
   if (!urlString) return false;
   try {
-    const url = new URL(urlString);
-    return url.protocol === "http:" || url.protocol === "https:";
+    const formatted = normalizeUrl(urlString);
+    const url = new URL(formatted);
+    return (url.protocol === "http:" || url.protocol === "https:") && Boolean(url.hostname && url.hostname.includes("."));
   } catch {
     return false;
   }
@@ -33,30 +43,31 @@ export function getSeverityBadgeClasses(severity: Severity): {
   switch (severity) {
     case "critical":
       return {
-        badge: "bg-[#FEE2E2] text-[#991B1B] border-[#FCA5A5]",
-        dot: "bg-[#991B1B]",
+        badge: "bg-[#FDE8EA] text-[#D7263D] border-[#F8B4BD]",
+        dot: "bg-[#D7263D]",
         label: "Critical",
       };
     case "high":
       return {
-        badge: "bg-[#FFEDD5] text-[#C2410C] border-[#FDBA74]",
-        dot: "bg-[#C2410C]",
+        badge: "bg-[#FDEEE7] text-[#E8591A] border-[#F8C8B3]",
+        dot: "bg-[#E8591A]",
         label: "High",
       };
     case "medium":
       return {
-        badge: "bg-[#FEF3C7] text-[#B45309] border-[#FCD34D]",
-        dot: "bg-[#B45309]",
+        badge: "bg-[#FEF7E6] text-[#8A6000] border-[#FBDFA0]",
+        dot: "bg-[#F2A900]",
         label: "Medium",
       };
     case "low":
       return {
-        badge: "bg-[#DBEAFE] text-[#1D4ED8] border-[#93C5FD]",
-        dot: "bg-[#1D4ED8]",
+        badge: "bg-[#EDF7F1] text-[#2E734D] border-[#BFE4CE]",
+        dot: "bg-[#4C9F70]",
         label: "Low",
       };
   }
 }
+
 
 export function getCurrentTimestamp(): string {
   const now = new Date();

@@ -95,4 +95,3 @@ def compute_owasp_coverage(findings: List[Finding]) -> Dict[str, OWASPCategoryAs
         )
 
     return coverage
-

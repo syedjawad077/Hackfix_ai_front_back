@@ -27,25 +27,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0B1F3A]/40"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--ink)]/50 backdrop-blur-xs"
       role="dialog"
       aria-modal="true"
       aria-labelledby="settings-dialog-title"
     >
-      <div className="w-full max-w-md bg-white rounded-2xl border border-[#D9E2F0] shadow-modal p-6 text-[#0B1F3A]">
+      <div className="w-full max-w-md bg-[var(--paper)] rounded-[8px] border border-[var(--line)] p-6 text-[var(--ink)]">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-[#D9E2F0]">
+        <div className="flex items-center justify-between pb-4 border-b border-[var(--line)]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#E3ECFA] text-[#0F2A5C] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-[8px] bg-[var(--paper-dark)] text-[var(--ink)] flex items-center justify-center">
               <Settings className="w-4 h-4" />
             </div>
-            <h3 id="settings-dialog-title" className="text-sm font-bold text-[#0B1F3A]">
+            <h3 id="settings-dialog-title" className="text-sm font-bold text-[var(--ink)]">
               HackFix AI Settings
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded text-[#51627A] hover:text-[#0B1F3A] hover:bg-black/5"
+            className="p-1 rounded-[8px] text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-black/5"
             aria-label="Close settings"
           >
             <X className="w-4 h-4" />
@@ -57,12 +57,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <div>
             <label
               htmlFor="fastapi-url-input"
-              className="block font-bold text-[#0B1F3A] mb-1 flex items-center gap-1.5"
+              className="block font-bold text-[var(--ink)] mb-1 flex items-center gap-1.5"
             >
-              <Server className="w-3.5 h-3.5 text-[#2563EB]" />
+              <Server className="w-3.5 h-3.5 text-[var(--ink-soft)]" />
               FastAPI Backend Endpoint URL
             </label>
-            <p className="text-[11px] text-[#51627A] mb-2">
+            <p className="text-[11px] text-[var(--ink-soft)] mb-2">
               Default is using built-in standalone Mock API layer. Provide a live FastAPI server (e.g. <code>http://localhost:8000</code>) to connect directly.
             </p>
             <input
@@ -71,34 +71,34 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               value={apiUrl}
               onChange={(e) => setApiUrl(e.target.value)}
               placeholder="http://localhost:8000"
-              className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-[#D9E2F0] rounded-lg font-mono text-[#0B1F3A] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+              className="w-full px-3 py-2 text-xs bg-[var(--paper-dark)] border border-[var(--line)] rounded-[8px] font-mono text-[var(--ink)] focus:bg-[var(--paper)] focus:outline-none focus:ring-1 focus:ring-[var(--signal)]"
             />
           </div>
 
-          <div className="p-3 bg-[#F4F7FB] border border-[#D9E2F0] rounded-xl space-y-2">
-            <span className="font-bold text-[#0B1F3A] flex items-center gap-1">
-              <Shield className="w-3.5 h-3.5 text-[#0F2A5C]" />
+          <div className="p-3 bg-[var(--paper-dark)] border border-[var(--line)] rounded-[8px] space-y-2">
+            <span className="font-bold text-[var(--ink)] flex items-center gap-1">
+              <Shield className="w-3.5 h-3.5 text-[var(--ink)]" />
               Security Testing Engine
             </span>
-            <p className="text-[11px] text-[#51627A] leading-relaxed">
+            <p className="text-[11px] text-[var(--ink-soft)] leading-relaxed">
               Autonomous 4-Step Pipeline: <strong>FIND</strong> (Passive/Active Recon) &rarr; <strong>PROVE</strong> (Safe sandbox verification) &rarr; <strong>FIX</strong> (AST Diff synthesis) &rarr; <strong>VERIFY</strong> (Regression harness).
             </p>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#D9E2F0]">
+        <div className="flex items-center justify-end gap-2 pt-3 border-t border-[var(--line)]">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 text-xs font-semibold text-[#51627A] hover:text-[#0B1F3A] rounded-pill border border-[#D9E2F0] hover:bg-[#F4F7FB]"
+            className="px-4 py-1.5 text-xs font-semibold text-[var(--ink-soft)] hover:text-[var(--ink)] rounded-[8px] border border-[var(--line)] hover:bg-[var(--paper-dark)]"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleSave}
-            className="px-4 py-1.5 text-xs font-bold text-white bg-[#0F2A5C] hover:bg-[#0A1F47] rounded-pill shadow-soft"
+            className="px-4 py-1.5 text-xs font-bold text-[var(--paper)] bg-[var(--ink)] hover:bg-[#333333] rounded-[8px]"
           >
             Save preferences
           </button>

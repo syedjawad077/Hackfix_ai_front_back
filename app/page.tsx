@@ -84,7 +84,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-white text-[#0B1F3A] overflow-hidden">
+    <div className="flex h-screen w-full bg-[var(--paper)] text-[var(--ink)] overflow-hidden">
       {/* Drop overlay for ZIP files */}
       <DropOverlay isDragging={isDraggingOverWindow} />
 
@@ -132,29 +132,29 @@ export default function HomePage() {
       />
 
       {/* Main Chat & Content Area */}
-      <div className="flex-1 flex flex-col h-full min-w-0 bg-white">
+      <div className="flex-1 flex flex-col h-full min-w-0 bg-[var(--paper)]">
         {/* Top Header bar */}
-        <header className="h-14 border-b border-[#D9E2F0] px-4 flex items-center justify-between bg-white shrink-0">
+        <header className="h-14 border-b border-[var(--line)] px-4 flex items-center justify-between bg-[var(--paper)] shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             {/* Mobile hamburger menu toggle */}
             <button
               type="button"
               onClick={() => setIsMobileSidebarOpen(true)}
-              className="md:hidden p-2 rounded-lg text-[#51627A] hover:text-[#0B1F3A] hover:bg-[#F4F7FB]"
+              className="md:hidden p-2 rounded-[8px] text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-[var(--paper-dark)]"
               aria-label="Open sidebar menu"
             >
               <Menu className="w-5 h-5" />
             </button>
 
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-6 h-6 rounded bg-[#0F2A5C] text-white flex items-center justify-center shrink-0">
+              <div className="w-6 h-6 rounded-[8px] bg-[var(--ink)] text-[var(--paper)] flex items-center justify-center shrink-0">
                 <Shield className="w-3.5 h-3.5" />
               </div>
-              <h2 className="text-sm font-bold text-[#0B1F3A] truncate">
+              <h2 className="text-sm font-bold text-[var(--ink)] truncate">
                 {activeSession?.title || "HackFix AI"}
               </h2>
               {activeSession?.ownershipVerified && (
-                <span className="hidden sm:inline-flex items-center text-[10px] font-bold text-[#0F2A5C] bg-[#E3ECFA] px-2 py-0.5 rounded-pill border border-[#D9E2F0]">
+                <span className="hidden sm:inline-flex items-center text-[10px] font-bold text-[var(--ink)] bg-[var(--paper-dark)] px-2 py-0.5 rounded-[8px] border border-[var(--line)]">
                   Ownership verified
                 </span>
               )}
@@ -165,7 +165,7 @@ export default function HomePage() {
             <button
               type="button"
               onClick={handleNewScan}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-[#0F2A5C] bg-[#F4F7FB] hover:bg-[#EAF0F8] border border-[#D9E2F0] rounded-pill"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[var(--signal)] hover:bg-[var(--signal-dark)] rounded-[8px]"
             >
               <Plus className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">New scan</span>
@@ -207,14 +207,14 @@ export default function HomePage() {
 
                 {/* Plain Static Scanning / Loading State */}
                 {isScanning && (
-                  <div className="flex items-center gap-3 my-6 p-4 bg-[#F4F7FB] border border-[#D9E2F0] rounded-xl text-xs font-semibold text-[#0F2A5C]">
-                    <RefreshCw className="w-4 h-4 text-[#2563EB]" />
+                  <div className="flex items-center gap-3 my-6 p-4 bg-[var(--paper-dark)] border border-[var(--line)] rounded-[8px] text-xs font-semibold text-[var(--ink)]">
+                    <RefreshCw className="w-4 h-4 text-[var(--signal)]" />
                     <span>Scanning target application and analyzing security posture...</span>
                   </div>
                 )}
                 {isSimulating && (
-                  <div className="flex items-center gap-3 my-6 p-4 bg-[#F4F7FB] border border-[#D9E2F0] rounded-xl text-xs font-semibold text-[#0F2A5C]">
-                    <RefreshCw className="w-4 h-4 text-[#2563EB]" />
+                  <div className="flex items-center gap-3 my-6 p-4 bg-[var(--paper-dark)] border border-[var(--line)] rounded-[8px] text-xs font-semibold text-[var(--ink)]">
+                    <RefreshCw className="w-4 h-4 text-[var(--signal)]" />
                     <span>Simulating adversary attack path and executive impact...</span>
                   </div>
                 )}
@@ -224,7 +224,7 @@ export default function HomePage() {
         </main>
 
         {/* Sticky ChatGPT-style Bottom Composer */}
-        <footer className="sticky bottom-0 bg-white border-t border-[#D9E2F0] shrink-0">
+        <footer className="sticky bottom-0 bg-[var(--paper)] border-t border-[var(--line)] shrink-0">
           <Composer
             url={urlInput}
             onUrlChange={setUrlInput}

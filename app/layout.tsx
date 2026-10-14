@@ -16,10 +16,17 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+          rel="stylesheet"
+        />
       </head>
-      <body className="bg-white text-[#0B1F3A] antialiased selection:bg-[#E3ECFA] selection:text-[#0F2A5C]">
+      <body className="bg-[var(--paper)] text-[var(--ink)] antialiased selection:bg-[#EAE4D9] selection:text-[#1B1B1B]">
         {children}
       </body>
+
     </html>
   );
 }

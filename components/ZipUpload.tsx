@@ -103,9 +103,9 @@ export function ZipUpload({
             }}
             className={`w-full border-2 border-dashed ${
               isDragOver
-                ? "border-[#2563EB] bg-[#E3ECFA]"
-                : "border-[#D9E2F0] bg-white hover:border-[#BACADF] hover:bg-[#F4F7FB]"
-            } rounded-2xl p-6 text-center cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-[#2563EB]`}
+                ? "border-[var(--signal)] bg-[var(--paper-dark)]"
+                : "border-[var(--line)] bg-[var(--paper)] hover:border-[var(--signal)] hover:bg-[var(--paper-dark)]"
+            } rounded-[8px] p-6 text-center cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-[var(--signal)]`}
             aria-label="Upload project .zip - optional"
           >
             <input
@@ -116,22 +116,22 @@ export function ZipUpload({
               disabled={disabled}
               className="hidden"
             />
-            <div className="w-10 h-10 rounded-full bg-[#F4F7FB] border border-[#D9E2F0] flex items-center justify-center mx-auto mb-2 text-[#0F2A5C]">
-              <UploadCloud className="w-5 h-5 text-[#2563EB]" />
+            <div className="w-10 h-10 rounded-[8px] bg-[var(--paper-dark)] border border-[var(--line)] flex items-center justify-center mx-auto mb-2 text-[var(--ink)]">
+              <UploadCloud className="w-5 h-5 text-[var(--signal)]" />
             </div>
-            <p className="text-sm font-bold text-[#0B1F3A]">
+            <p className="text-sm font-bold text-[var(--ink)]">
               Upload project (.zip) - optional
             </p>
-            <p className="text-xs text-[#51627A] mt-1">
+            <p className="text-xs text-[var(--ink-soft)] mt-1">
               Drag & drop your .zip file here, or click to browse (up to 50 MB)
             </p>
-            <p className="text-[11px] text-[#51627A]/80 mt-2 italic">
+            <p className="text-[11px] text-[var(--ink-soft)]/80 mt-2 italic">
               Skip this if you only want to test the live website.
             </p>
           </div>
 
           {errorMessage && (
-            <div className="mt-2 flex items-center gap-1.5 text-xs text-[#991B1B] font-medium">
+            <div className="mt-2 flex items-center gap-1.5 text-xs text-[#D7263D] font-medium">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{errorMessage}</span>
             </div>

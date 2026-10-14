@@ -20,17 +20,17 @@ export function FileChip({
   disabled = false,
 }: FileChipProps) {
   return (
-    <div className="bg-white border border-[#D9E2F0] rounded-xl p-3 shadow-sm flex flex-col gap-2">
+    <div className="bg-[var(--paper)] border border-[var(--line)] rounded-[8px] p-3 flex flex-col gap-2">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-lg bg-[#E3ECFA] text-[#0F2A5C] flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-[8px] bg-[var(--paper-dark)] text-[var(--ink)] flex items-center justify-center shrink-0">
             <FileArchive className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-[#0B1F3A] truncate">
+            <p className="text-sm font-semibold text-[var(--ink)] truncate">
               {fileName}
             </p>
-            <p className="text-xs text-[#51627A]">
+            <p className="text-xs text-[var(--ink-soft)]">
               {formatBytes(fileSize)} • ZIP archive
             </p>
           </div>
@@ -40,7 +40,7 @@ export function FileChip({
           <button
             type="button"
             onClick={onRemove}
-            className="p-1 rounded-md text-[#51627A] hover:text-[#0B1F3A] hover:bg-[#F4F7FB] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+            className="p-1 rounded-[8px] text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-[var(--paper-dark)] focus:outline-none focus:ring-1 focus:ring-[var(--signal)]"
             aria-label={`Remove attached file ${fileName}`}
           >
             <X className="w-4 h-4" />
@@ -50,15 +50,15 @@ export function FileChip({
 
       {/* Static Progress Bar (No animations) */}
       <div className="w-full">
-        <div className="w-full bg-[#E3ECFA] h-1.5 rounded-full overflow-hidden">
+        <div className="w-full bg-[var(--line)] h-1.5 rounded-[8px] overflow-hidden">
           <div
-            className="bg-[#0F2A5C] h-full rounded-full"
+            className="bg-[var(--ink)] h-full rounded-[8px]"
             style={{ width: "100%" }}
           />
         </div>
-        <div className="flex items-center justify-between text-[11px] text-[#51627A] mt-1 font-medium">
-          <span className="flex items-center gap-1 text-[#0F2A5C]">
-            <Check className="w-3 h-3 text-[#2563EB]" />
+        <div className="flex items-center justify-between text-[11px] text-[var(--ink-soft)] mt-1 font-medium">
+          <span className="flex items-center gap-1 text-[var(--ink)]">
+            <Check className="w-3 h-3 text-[#4C9F70]" />
             {statusText}
           </span>
           <span>100%</span>

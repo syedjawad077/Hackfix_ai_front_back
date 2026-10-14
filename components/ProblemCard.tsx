@@ -9,7 +9,7 @@ import {
   Check,
   HelpCircle,
   MessageSquare,
-  Sparkles,
+  Crosshair,
 } from "lucide-react";
 import { Finding } from "@/lib/types";
 import { getSeverityBadgeClasses } from "@/lib/utils";
@@ -47,7 +47,7 @@ export function ProblemCard({
   };
 
   return (
-    <div className="bg-white border border-[#D9E2F0] rounded-2xl shadow-sm overflow-hidden">
+    <div className="bg-[var(--paper)] border border-[var(--line)] rounded-[8px] interactive-card overflow-hidden">
       {/* Header / Collapsed Summary Bar */}
       <div
         role="button"
@@ -59,14 +59,14 @@ export function ProblemCard({
             setIsExpanded((prev) => !prev);
           }
         }}
-        className="p-5 flex items-start sm:items-center justify-between gap-4 cursor-pointer hover:bg-[#F4F7FB] focus:outline-none focus:bg-[#E3ECFA] select-none"
+        className="p-5 flex items-start sm:items-center justify-between gap-4 cursor-pointer hover:bg-[var(--paper-dark)] focus:outline-none focus:bg-[var(--paper-dark)] select-none"
         aria-expanded={isExpanded}
       >
         <div className="flex-1 min-w-0 space-y-1.5">
           <div className="flex flex-wrap items-center gap-2">
             {/* Severity Badge */}
             <span
-              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border ${severityBadge.badge}`}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[8px] text-xs font-bold border ${severityBadge.badge}`}
             >
               <span className={`w-1.5 h-1.5 rounded-full ${severityBadge.dot}`} />
               {severityBadge.label} (Score {finding.score})
@@ -81,29 +81,29 @@ export function ProblemCard({
                     e.stopPropagation();
                     setShowTermHelp((prev) => !prev);
                   }}
-                  className="inline-flex items-center gap-1 text-[11px] font-medium text-[#51627A] hover:text-[#0B1F3A] bg-[#F4F7FB] border border-[#D9E2F0] px-2 py-0.5 rounded-md"
+                  className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--ink-soft)] hover:text-[var(--ink)] bg-[var(--paper-dark)] border border-[var(--line)] px-2 py-0.5 rounded-[8px]"
                   aria-label={`What is ${finding.termHelp.term}?`}
                 >
                   <span>{finding.termHelp.term}</span>
-                  <HelpCircle className="w-3 h-3 text-[#2563EB]" />
+                  <HelpCircle className="w-3 h-3 text-[var(--ink)]" />
                 </button>
 
                 {/* Plain on-click help popover (NO animations) */}
                 {showTermHelp && (
                   <div
                     onClick={(e) => e.stopPropagation()}
-                    className="absolute left-0 top-full mt-1.5 w-64 bg-[#0B1F3A] text-white text-xs p-3 rounded-xl shadow-xl z-30"
+                    className="absolute left-0 top-full mt-1.5 w-64 bg-[var(--ink)] text-[var(--paper)] text-xs p-3 rounded-[8px] border border-[var(--line)] z-30"
                   >
-                    <p className="font-bold text-sky-300 mb-1">
+                    <p className="font-bold text-[var(--paper)] mb-1">
                       {finding.termHelp.term} explained:
                     </p>
-                    <p className="text-slate-200 leading-normal">
+                    <p className="text-[var(--paper-dark)] leading-normal">
                       {finding.termHelp.explanation}
                     </p>
                     <button
                       type="button"
                       onClick={() => setShowTermHelp(false)}
-                      className="mt-2 text-[10px] text-slate-400 hover:text-white underline block text-right"
+                      className="mt-2 text-[10px] text-[var(--ink-soft)] hover:text-[var(--paper)] underline block text-right"
                     >
                       Close
                     </button>
@@ -114,13 +114,13 @@ export function ProblemCard({
           </div>
 
           {/* Plain Human Title */}
-          <h3 className="text-base sm:text-lg font-bold text-[#0B1F3A] leading-snug">
+          <h3 className="text-base sm:text-lg font-bold text-[var(--ink)] leading-snug">
             {finding.title}
           </h3>
 
           {/* Collapsed short description preview */}
           {!isExpanded && (
-            <p className="text-xs sm:text-sm text-[#51627A] line-clamp-1">
+            <p className="text-xs sm:text-sm text-[var(--ink-soft)] line-clamp-1">
               {finding.explanation}
             </p>
           )}
@@ -128,37 +128,37 @@ export function ProblemCard({
 
         {/* Right Arrow / Expand Toggle */}
         <div className="flex items-center gap-2 shrink-0 pt-1 sm:pt-0">
-          <span className="text-xs font-semibold text-[#51627A] hidden md:inline">
+          <span className="text-xs font-semibold text-[var(--ink-soft)] hidden md:inline">
             {isExpanded ? "Hide details" : "View fix"}
           </span>
           {isExpanded ? (
-            <ChevronDown className="w-5 h-5 text-[#51627A]" />
+            <ChevronDown className="w-5 h-5 text-[var(--ink-soft)]" />
           ) : (
-            <ChevronRight className="w-5 h-5 text-[#51627A]" />
+            <ChevronRight className="w-5 h-5 text-[var(--ink-soft)]" />
           )}
         </div>
       </div>
 
       {/* Expanded Content Section */}
       {isExpanded && (
-        <div className="px-5 pb-6 pt-2 border-t border-[#D9E2F0] space-y-5 bg-[#FAFCFF]">
+        <div className="px-5 pb-6 pt-2 border-t border-[var(--line)] space-y-5 bg-[var(--paper)]">
           {/* Section 1: What this means */}
           <div className="space-y-1.5">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#0B1F3A] flex items-center gap-1.5">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--ink)] flex items-center gap-1.5">
               <span>What this means</span>
             </h4>
-            <div className="bg-white border border-[#D9E2F0] rounded-xl p-3.5 text-xs sm:text-sm text-[#0B1F3A] leading-relaxed">
+            <div className="bg-[var(--paper-dark)] border border-[var(--line)] rounded-[8px] p-3.5 text-xs sm:text-sm text-[var(--ink)] leading-relaxed">
               {finding.explanation}
             </div>
           </div>
 
           {/* Section 2: How we proved it */}
           <div className="space-y-1.5">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#0B1F3A] flex items-center gap-1.5">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--ink)] flex items-center gap-1.5">
               <span>How we proved it</span>
             </h4>
-            <div className="bg-white border border-[#D9E2F0] rounded-xl p-3.5 text-xs sm:text-sm text-[#51627A] leading-relaxed flex items-start gap-2.5">
-              <span className="inline-block w-2 h-2 rounded-full bg-[#2563EB] mt-1.5 shrink-0" />
+            <div className="bg-[var(--paper-dark)] border border-[var(--line)] rounded-[8px] p-3.5 text-xs sm:text-sm text-[var(--ink-soft)] leading-relaxed flex items-start gap-2.5">
+              <span className="inline-block w-2 h-2 rounded-full bg-[var(--ink)] mt-1.5 shrink-0" />
               <span>{finding.proof}</span>
             </div>
           </div>
@@ -166,22 +166,22 @@ export function ProblemCard({
           {/* Section 3: How to fix it */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#0B1F3A]">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--ink)]">
                 How to fix it
               </h4>
               <button
                 type="button"
                 onClick={handleCopyFix}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-[#0F2A5C] bg-white border border-[#D9E2F0] hover:bg-[#E3ECFA] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-[var(--ink)] bg-[var(--paper-dark)] border border-[var(--line)] hover:bg-[var(--paper)] rounded-[8px] focus:outline-none focus:ring-1 focus:ring-[var(--signal)]"
               >
                 {copied ? (
                   <>
-                    <Check className="w-3.5 h-3.5 text-[#2563EB]" />
+                    <Check className="w-3.5 h-3.5 text-[var(--ink)]" />
                     <span>Copied</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3.5 h-3.5 text-[#51627A]" />
+                    <Copy className="w-3.5 h-3.5 text-[var(--ink-soft)]" />
                     <span>Copy fix</span>
                   </>
                 )}
@@ -190,9 +190,9 @@ export function ProblemCard({
 
             {/* Fix Steps list */}
             {finding.fixSteps && finding.fixSteps.length > 0 && (
-              <div className="bg-white border border-[#D9E2F0] rounded-xl p-3.5 space-y-2">
-                <p className="text-xs font-bold text-[#0B1F3A]">Follow these steps:</p>
-                <ol className="list-decimal list-inside space-y-1 text-xs text-[#51627A]">
+              <div className="bg-[var(--paper-dark)] border border-[var(--line)] rounded-[8px] p-3.5 space-y-2">
+                <p className="text-xs font-bold text-[var(--ink)]">Follow these steps:</p>
+                <ol className="list-decimal list-inside space-y-1 text-xs text-[var(--ink-soft)]">
                   {finding.fixSteps.map((step, idx) => (
                     <li key={idx} className="leading-relaxed">
                       {step}
@@ -204,32 +204,32 @@ export function ProblemCard({
 
             {/* Before / After Code Diff */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs font-mono text-[#51627A] px-1">
+              <div className="flex items-center justify-between text-xs font-mono text-[var(--ink-soft)] px-1">
                 <span>File: {finding.recommendedFix.fileName}</span>
                 <span>{finding.recommendedFix.explanation}</span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {/* Before: Vulnerable Code */}
-                <div className="border border-[#FCA5A5] rounded-xl overflow-hidden bg-[#FEF2F2]">
+                <div className="border border-[#FCA5A5] rounded-[8px] overflow-hidden bg-[#FEF2F2]">
                   <div className="bg-[#FEE2E2] px-3 py-1.5 border-b border-[#FCA5A5] flex items-center justify-between">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#991B1B]">
                       Current Code (Vulnerable)
                     </span>
                   </div>
-                  <pre className="p-3 text-[11px] font-mono text-[#991B1B] overflow-x-auto whitespace-pre leading-relaxed">
+                  <pre className="p-3 text-[11px] font-mono text-[#991B1B] overflow-x-auto whitespace-pre leading-relaxed bg-[#FEF2F2]">
                     {finding.recommendedFix.beforeCode}
                   </pre>
                 </div>
 
                 {/* After: Fixed Code */}
-                <div className="border border-[#93C5FD] rounded-xl overflow-hidden bg-[#F0F7FF]">
-                  <div className="bg-[#DBEAFE] px-3 py-1.5 border-b border-[#93C5FD] flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#1D4ED8]">
+                <div className="border border-[var(--line)] rounded-[8px] overflow-hidden bg-[var(--paper)]">
+                  <div className="bg-[var(--paper-dark)] px-3 py-1.5 border-b border-[var(--line)] flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--ink)]">
                       Fixed Code (Secure)
                     </span>
                   </div>
-                  <pre className="p-3 text-[11px] font-mono text-[#0F2A5C] overflow-x-auto whitespace-pre leading-relaxed">
+                  <pre className="p-3 text-[11px] font-mono text-[var(--ink)] overflow-x-auto whitespace-pre leading-relaxed bg-[var(--paper)]">
                     {finding.recommendedFix.afterCode}
                   </pre>
                 </div>
@@ -242,9 +242,9 @@ export function ProblemCard({
             <button
               type="button"
               onClick={handleAskAboutFinding}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-[#0F2A5C] bg-[#E3ECFA] hover:bg-[#D5E4F8] border border-[#BACADF] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-[var(--ink)] bg-[var(--paper-dark)] hover:bg-[var(--paper)] border border-[var(--line)] rounded-[8px] focus:outline-none focus:ring-1 focus:ring-[var(--signal)]"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#2563EB]" />
+              <Crosshair className="w-3.5 h-3.5 text-[var(--ink)]" />
               <span>Ask HackFix AI to walk me through this</span>
             </button>
           </div>

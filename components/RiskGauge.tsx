@@ -12,35 +12,34 @@ export const RiskGauge: React.FC<RiskGaugeProps> = ({
   score,
   totalFindings,
 }) => {
-  // Score interpretation in blue tones
   let riskLabel = "Low Risk";
-  let statusColor = "text-[#2563EB]";
-  let barColor = "bg-[#2563EB]";
+  let statusColor = "text-[#4C9F70]";
+  let barColor = "bg-[#4C9F70]";
 
   if (score >= 70) {
     riskLabel = "High Exposure Risk";
-    statusColor = "text-[#0F2A5C]";
-    barColor = "bg-[#0F2A5C]";
+    statusColor = "text-[#D7263D]";
+    barColor = "bg-[#D7263D]";
   } else if (score >= 40) {
     riskLabel = "Moderate Risk";
-    statusColor = "text-[#2563EB]";
-    barColor = "bg-[#2563EB]";
+    statusColor = "text-[#F2A900]";
+    barColor = "bg-[#F2A900]";
   } else {
     riskLabel = "Low Risk";
-    statusColor = "text-[#16A34A]";
-    barColor = "bg-[#16A34A]";
+    statusColor = "text-[#4C9F70]";
+    barColor = "bg-[#4C9F70]";
   }
 
   return (
-    <div className="bg-white border border-[#D9E2F0] rounded-xl p-4 shadow-soft">
+    <div className="bg-[var(--paper)] border border-[var(--line)] rounded-[8px] p-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           {score >= 50 ? (
-            <ShieldAlert className="w-5 h-5 text-[#0F2A5C]" />
+            <ShieldAlert className="w-5 h-5 text-[#D7263D]" />
           ) : (
-            <ShieldCheck className="w-5 h-5 text-[#2563EB]" />
+            <ShieldCheck className="w-5 h-5 text-[#4C9F70]" />
           )}
-          <span className="text-xs font-bold uppercase tracking-wider text-[#0B1F3A]">
+          <span className="text-xs font-bold uppercase tracking-wider text-[var(--ink)]">
             Overall Security Risk Score
           </span>
         </div>
@@ -50,19 +49,19 @@ export const RiskGauge: React.FC<RiskGaugeProps> = ({
       </div>
 
       <div className="flex items-baseline gap-2 mb-2">
-        <span className="text-3xl font-extrabold text-[#0B1F3A] tracking-tight">
+        <span className="text-3xl font-extrabold text-[var(--ink)] tracking-tight">
           {score}
         </span>
-        <span className="text-xs text-[#51627A] font-semibold">/ 100</span>
-        <span className="text-xs text-[#51627A] ml-auto">
+        <span className="text-xs text-[var(--ink-soft)] font-semibold">/ 100</span>
+        <span className="text-xs text-[var(--ink-soft)] ml-auto">
           {totalFindings} issues identified
         </span>
       </div>
 
-      {/* Static bar in blue tones */}
-      <div className="w-full bg-[#E3ECFA] h-2.5 rounded-full overflow-hidden">
+      {/* Static progress bar */}
+      <div className="w-full bg-[var(--line)] h-2.5 rounded-[8px] overflow-hidden">
         <div
-          className={`${barColor} h-full rounded-full`}
+          className={`${barColor} h-full rounded-[8px]`}
           style={{ width: `${Math.min(100, Math.max(0, score))}%` }}
           role="progressbar"
           aria-valuenow={score}
@@ -71,7 +70,7 @@ export const RiskGauge: React.FC<RiskGaugeProps> = ({
         />
       </div>
 
-      <div className="flex justify-between items-center text-[10px] text-[#51627A] font-semibold uppercase mt-1.5 px-0.5">
+      <div className="flex justify-between items-center text-[10px] text-[var(--ink-soft)] font-semibold uppercase mt-1.5 px-0.5">
         <span>0 (Secure)</span>
         <span>50 (Moderate)</span>
         <span>100 (Critical)</span>

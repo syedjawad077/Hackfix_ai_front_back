@@ -18,56 +18,56 @@ export function PastScansMenu({
   return (
     <div
       role="menu"
-      className="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-[#D9E2F0] rounded-2xl shadow-xl z-50 overflow-hidden"
+      className="absolute right-0 mt-2 w-80 sm:w-96 bg-[var(--paper)] border border-[var(--line)] rounded-[8px] z-50 overflow-hidden"
     >
-      <div className="px-4 py-3 bg-[#F4F7FB] border-b border-[#D9E2F0] flex items-center justify-between">
-        <span className="text-xs font-bold uppercase tracking-wider text-[#0B1F3A]">
+      <div className="px-4 py-3 bg-[var(--paper-dark)] border-b border-[var(--line)] flex items-center justify-between">
+        <span className="text-xs font-bold uppercase tracking-wider text-[var(--ink)]">
           Previous App Scans
         </span>
         <button
           type="button"
           onClick={onClose}
-          className="text-[#51627A] hover:text-[#0B1F3A] p-1 rounded-md"
+          className="text-[var(--ink-soft)] hover:text-[var(--ink)] p-1 rounded-[8px]"
           aria-label="Close menu"
         >
           <X className="w-4 h-4" />
         </button>
       </div>
 
-      <div className="max-h-80 overflow-y-auto divide-y divide-[#D9E2F0]">
+      <div className="max-h-80 overflow-y-auto divide-y divide-[var(--line)]">
         {pastScans.length === 0 ? (
-          <div className="p-6 text-center text-sm text-[#51627A]">
+          <div className="p-6 text-center text-sm text-[var(--ink-soft)]">
             No previous scans found. Start your first scan below!
           </div>
         ) : (
           pastScans.map((scan) => {
             const scoreColor =
               scan.riskScore >= 80
-                ? "bg-[#DBEAFE] text-[#1D4ED8] border-[#93C5FD]"
+                ? "bg-[#EDF7F1] text-[#2F6D4B] border-[#BDE3CC]"
                 : scan.riskScore >= 60
-                ? "bg-[#FEF3C7] text-[#B45309] border-[#FCD34D]"
-                : "bg-[#FEE2E2] text-[#991B1B] border-[#FCA5A5]";
+                ? "bg-[#FEF8E7] text-[#B88100] border-[#FBE39F]"
+                : "bg-[#FDE8EA] text-[#D7263D] border-[#F8B4BB]";
 
             return (
               <button
                 key={scan.id}
                 type="button"
                 onClick={() => onSelectScan(scan)}
-                className="w-full text-left p-3.5 hover:bg-[#F4F7FB] flex items-center justify-between gap-3 focus:outline-none focus:bg-[#E3ECFA]"
+                className="w-full text-left p-3.5 hover:bg-[var(--paper-dark)] flex items-center justify-between gap-3 focus:outline-none focus:bg-[var(--paper-dark)]"
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <Globe className="w-4 h-4 text-[#2563EB] shrink-0" />
-                    <span className="text-sm font-semibold text-[#0B1F3A] truncate">
+                    <Globe className="w-4 h-4 text-[var(--ink-soft)] shrink-0" />
+                    <span className="text-sm font-semibold font-mono text-[var(--ink)] truncate">
                       {scan.name}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-[#51627A]">
+                  <div className="flex items-center gap-2 text-xs text-[var(--ink-soft)]">
                     <span>{scan.date}</span>
                     <span>•</span>
                     <span>
                       {scan.criticalCount > 0 ? (
-                        <span className="text-[#991B1B] font-medium">
+                        <span className="text-[#D7263D] font-medium">
                           {scan.criticalCount} critical
                         </span>
                       ) : (
@@ -79,11 +79,11 @@ export function PastScansMenu({
 
                 <div className="flex items-center gap-2 shrink-0">
                   <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border ${scoreColor}`}
+                    className={`inline-flex items-center px-2 py-0.5 rounded-[8px] text-xs font-bold border ${scoreColor}`}
                   >
                     Score {scan.riskScore}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-[#51627A]" />
+                  <ArrowRight className="w-4 h-4 text-[var(--ink-soft)]" />
                 </div>
               </button>
             );

@@ -16,7 +16,6 @@ export function TopBar({
   pastScans,
   onSelectPastScan,
   onNewScan,
-  currentScanTitle,
 }: TopBarProps) {
   const [isPastScansOpen, setIsPastScansOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -37,7 +36,7 @@ export function TopBar({
   }, [isPastScansOpen]);
 
   return (
-    <header className="w-full bg-white border-b border-[#D9E2F0] sticky top-0 z-40">
+    <header className="w-full bg-[var(--paper)] border-b border-[var(--line)] sticky top-0 z-40">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         {/* Left: Logo block + Wordmark */}
         <div
@@ -50,17 +49,17 @@ export function TopBar({
               onNewScan();
             }
           }}
-          className="flex items-center gap-3 cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-[#2563EB] rounded-lg p-1"
+          className="flex items-center gap-3 cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-[var(--signal)] rounded-[8px] p-1"
           aria-label="HackFix AI Home"
         >
-          <div className="w-9 h-9 rounded-xl bg-[#0F2A5C] text-white flex items-center justify-center font-bold text-lg shadow-sm">
+          <div className="w-9 h-9 rounded-[8px] bg-[var(--signal)] text-white flex items-center justify-center font-bold text-lg">
             <Shield className="w-5 h-5 text-white" />
           </div>
           <div className="flex flex-col">
-            <span className="font-bold text-lg text-[#0B1F3A] tracking-tight leading-none">
+            <span className="font-bold text-lg text-[var(--ink)] tracking-tight leading-none">
               HackFix AI
             </span>
-            <span className="text-[11px] text-[#51627A] font-medium mt-0.5">
+            <span className="text-[11px] text-[var(--ink-soft)] font-medium mt-0.5">
               Security for AI-built apps
             </span>
           </div>
@@ -73,11 +72,11 @@ export function TopBar({
             <button
               type="button"
               onClick={() => setIsPastScansOpen((prev) => !prev)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-[#0B1F3A] bg-[#F4F7FB] hover:bg-[#E3ECFA] border border-[#D9E2F0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-[var(--ink)] bg-[var(--paper-dark)] hover:bg-[#E2DCD1] border border-[var(--line)] rounded-[8px] focus:outline-none focus:ring-2 focus:ring-[var(--signal)]"
               aria-expanded={isPastScansOpen}
               aria-haspopup="true"
             >
-              <History className="w-4 h-4 text-[#51627A]" />
+              <History className="w-4 h-4 text-[var(--ink-soft)]" />
               <span>Past scans</span>
             </button>
 
@@ -93,11 +92,11 @@ export function TopBar({
             )}
           </div>
 
-          {/* + New scan button */}
+          {/* + New scan button in signal orange */}
           <button
             type="button"
             onClick={onNewScan}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold text-white bg-[#0F2A5C] hover:bg-[#0A1F47] rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold text-white bg-[var(--signal)] hover:bg-[var(--signal-dark)] rounded-[8px] shadow-none focus:outline-none focus:ring-2 focus:ring-[var(--signal)]"
           >
             <Plus className="w-4 h-4" />
             <span>New scan</span>

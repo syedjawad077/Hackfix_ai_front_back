@@ -19,44 +19,44 @@ export const Toast: React.FC<ToastProps> = ({ toasts, onDismiss }) => {
       aria-label="Notifications"
     >
       {toasts.map((toast) => {
-        let icon = <Info className="w-5 h-5 text-[#2563EB] shrink-0" />;
-        let borderColor = "border-[#D9E2F0]";
-        let bgColor = "bg-white";
+        let icon = <Info className="w-5 h-5 text-[var(--ink-soft)] shrink-0" />;
+        let borderColor = "border-[var(--line)]";
+        let bgColor = "bg-[var(--paper)]";
 
         if (toast.type === "success") {
-          icon = <CheckCircle2 className="w-5 h-5 text-[#16A34A] shrink-0" />;
-          borderColor = "border-[#BBF7D0]";
-          bgColor = "bg-[#F0FDF4]";
+          icon = <CheckCircle2 className="w-5 h-5 text-[#4C9F70] shrink-0" />;
+          borderColor = "border-[#BDE3CC]";
+          bgColor = "bg-[#EDF7F1]";
         } else if (toast.type === "error") {
-          icon = <XCircle className="w-5 h-5 text-[#991B1B] shrink-0" />;
-          borderColor = "border-[#FCA5A5]";
-          bgColor = "bg-[#FEE2E2]";
+          icon = <XCircle className="w-5 h-5 text-[#D7263D] shrink-0" />;
+          borderColor = "border-[#F8B4BB]";
+          bgColor = "bg-[#FDE8EA]";
         } else if (toast.type === "warning") {
-          icon = <AlertCircle className="w-5 h-5 text-[#B45309] shrink-0" />;
-          borderColor = "border-[#FCD34D]";
-          bgColor = "bg-[#FEF3C7]";
+          icon = <AlertCircle className="w-5 h-5 text-[#F2A900] shrink-0" />;
+          borderColor = "border-[#FBE39F]";
+          bgColor = "bg-[#FEF8E7]";
         }
 
         return (
           <div
             key={toast.id}
             role="status"
-            className={`pointer-events-auto flex items-start gap-3 p-3.5 rounded-card border ${borderColor} ${bgColor} shadow-card text-[#0B1F3A]`}
+            className={`pointer-events-auto flex items-start gap-3 p-3.5 rounded-[8px] border ${borderColor} ${bgColor} text-[var(--ink)]`}
           >
             {icon}
             <div className="flex-1 text-sm">
               {toast.title && (
-                <p className="font-semibold text-xs tracking-wide uppercase mb-0.5 text-[#0B1F3A]">
+                <p className="font-semibold text-xs tracking-wide uppercase mb-0.5 text-[var(--ink)]">
                   {toast.title}
                 </p>
               )}
-              <p className="text-xs leading-relaxed text-[#51627A]">
+              <p className="text-xs leading-relaxed text-[var(--ink-soft)]">
                 {toast.message}
               </p>
             </div>
             <button
               onClick={() => onDismiss(toast.id)}
-              className="text-[#51627A] hover:text-[#0B1F3A] p-1 rounded hover:bg-black/5"
+              className="text-[var(--ink-soft)] hover:text-[var(--ink)] p-1 rounded-[8px]"
               aria-label="Dismiss notification"
             >
               <X className="w-4 h-4" />

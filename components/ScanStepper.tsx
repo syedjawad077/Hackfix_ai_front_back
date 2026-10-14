@@ -19,12 +19,12 @@ export const ScanStepper: React.FC<ScanStepperProps> = ({ stepper }) => {
   const renderStepIcon = (state: StepState) => {
     switch (state) {
       case "done":
-        return <CheckCircle2 className="w-5 h-5 text-[#2563EB]" />;
+        return <CheckCircle2 className="w-5 h-5 text-[var(--ink)]" />;
       case "running":
-        return <Clock className="w-5 h-5 text-[#0F2A5C]" />;
+        return <Clock className="w-5 h-5 text-[var(--signal)]" />;
       case "pending":
       default:
-        return <Circle className="w-5 h-5 text-[#BACADF]" />;
+        return <Circle className="w-5 h-5 text-[var(--line)]" />;
     }
   };
 
@@ -32,20 +32,20 @@ export const ScanStepper: React.FC<ScanStepperProps> = ({ stepper }) => {
     switch (state) {
       case "done":
         return (
-          <span className="text-[11px] font-semibold text-[#2563EB] bg-[#E3ECFA] px-2 py-0.5 rounded-pill">
+          <span className="text-[11px] font-semibold text-[var(--ink)] bg-[var(--paper-dark)] px-2 py-0.5 rounded-[8px] border border-[var(--line)]">
             Completed
           </span>
         );
       case "running":
         return (
-          <span className="text-[11px] font-semibold text-[#0F2A5C] bg-[#E3ECFA] px-2 py-0.5 rounded-pill border border-[#D9E2F0]">
+          <span className="text-[11px] font-semibold text-[var(--signal)] bg-[var(--paper)] px-2 py-0.5 rounded-[8px] border border-[var(--signal)]">
             Running...
           </span>
         );
       case "pending":
       default:
         return (
-          <span className="text-[11px] font-medium text-[#51627A] bg-[#F4F7FB] px-2 py-0.5 rounded-pill">
+          <span className="text-[11px] font-medium text-[var(--ink-soft)] bg-[var(--paper-dark)] px-2 py-0.5 rounded-[8px]">
             Pending
           </span>
         );
@@ -53,12 +53,12 @@ export const ScanStepper: React.FC<ScanStepperProps> = ({ stepper }) => {
   };
 
   return (
-    <div className="w-full bg-[#F4F7FB] border border-[#D9E2F0] rounded-xl p-4 my-3 text-[#0B1F3A]">
-      <div className="flex items-center justify-between mb-3 border-b border-[#D9E2F0] pb-2">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-[#0F2A5C]">
+    <div className="w-full bg-[var(--paper-dark)] border border-[var(--line)] rounded-[8px] p-4 my-3 text-[var(--ink)]">
+      <div className="flex items-center justify-between mb-3 border-b border-[var(--line)] pb-2">
+        <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--ink)]">
           Autonomous Security Pipeline
         </h4>
-        <span className="text-[11px] font-medium text-[#51627A]">
+        <span className="text-[11px] font-medium text-[var(--ink-soft)]">
           4-Step Verification Engine
         </span>
       </div>
@@ -72,27 +72,27 @@ export const ScanStepper: React.FC<ScanStepperProps> = ({ stepper }) => {
           return (
             <div
               key={key}
-              className={`p-3 rounded-lg border bg-white flex flex-col justify-between gap-2 shadow-sm ${
+              className={`p-3 rounded-[8px] border bg-[var(--paper)] flex flex-col justify-between gap-2 transition-all ${
                 isRunning
-                  ? "border-[#2563EB] ring-1 ring-[#2563EB]"
+                  ? "border-[var(--signal)] pipeline-current-step"
                   : isDone
-                  ? "border-[#D9E2F0]"
-                  : "border-[#D9E2F0] opacity-80"
+                  ? "border-[var(--ink)]"
+                  : "border-[var(--line)] opacity-50"
               }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold font-mono text-[#51627A]">
+                  <span className="text-xs font-bold font-mono text-[var(--ink-soft)]">
                     0{idx + 1}
                   </span>
-                  <span className="text-xs font-bold tracking-wider text-[#0B1F3A]">
+                  <span className="text-xs font-bold tracking-wider text-[var(--ink)]">
                     {label}
                   </span>
                 </div>
                 {renderStepIcon(state)}
               </div>
 
-              <p className="text-[11px] text-[#51627A] leading-tight line-clamp-1">
+              <p className="text-[11px] text-[var(--ink-soft)] leading-tight line-clamp-1">
                 {desc}
               </p>
 

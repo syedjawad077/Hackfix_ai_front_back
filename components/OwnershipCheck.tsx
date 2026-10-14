@@ -23,40 +23,40 @@ export function OwnershipCheck({
   return (
     <div className="w-full space-y-4">
       {/* Checkbox row */}
-      <label className="flex items-start gap-3 p-3.5 bg-white border border-[#D9E2F0] rounded-xl cursor-pointer select-none hover:border-[#BACADF]">
+      <label className="flex items-start gap-3 p-3.5 bg-[var(--paper)] border border-[var(--line)] rounded-[8px] cursor-pointer select-none hover:border-[var(--signal)]">
         <input
           type="checkbox"
           checked={isChecked}
           onChange={(e) => onCheckChange(e.target.checked)}
           disabled={isScanning}
-          className="mt-0.5 w-4 h-4 text-[#0F2A5C] border-[#BACADF] rounded focus:ring-2 focus:ring-[#2563EB] cursor-pointer"
+          className="mt-0.5 w-4 h-4 text-[var(--signal)] border-[var(--line)] rounded focus:ring-1 focus:ring-[var(--signal)] accent-[var(--signal)] cursor-pointer"
         />
-        <div className="flex-1 text-xs sm:text-sm text-[#0B1F3A]">
+        <div className="flex-1 text-xs sm:text-sm text-[var(--ink)]">
           <span className="font-semibold">
             I own this application or have written permission to test it
           </span>
-          <p className="text-xs text-[#51627A] mt-0.5">
+          <p className="text-xs text-[var(--ink-soft)] mt-0.5">
             Security tests simulate real attacks in a safe way. Only test systems you control.
           </p>
         </div>
       </label>
 
       {/* Safety notice */}
-      <div className="flex items-center gap-2 text-xs text-[#51627A] px-1">
-        <Lock className="w-3.5 h-3.5 text-[#2563EB] shrink-0" />
+      <div className="flex items-center gap-2 text-xs text-[var(--ink-soft)] px-1">
+        <Lock className="w-3.5 h-3.5 text-[var(--ink-soft)] shrink-0" />
         <span>HackFix AI only tests apps you own. Results may need review.</span>
       </div>
 
-      {/* Large dark-blue Start scan button */}
+      {/* Signal orange Start scan button */}
       <div>
         <button
           type="button"
           onClick={onStartScan}
           disabled={!canStart || isScanning}
-          className={`w-full py-3.5 px-6 rounded-xl font-bold text-base flex items-center justify-center gap-2 shadow-sm ${
+          className={`w-full py-3.5 px-6 rounded-[8px] font-bold text-base flex items-center justify-center gap-2 ${
             canStart && !isScanning
-              ? "bg-[#0F2A5C] hover:bg-[#0A1F47] text-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
-              : "bg-[#D9E2F0] text-[#51627A] cursor-not-allowed"
+              ? "bg-[var(--signal)] hover:bg-[var(--signal-dark)] text-white cursor-pointer focus:outline-none focus:ring-1 focus:ring-[var(--signal)]"
+              : "bg-[var(--line)] text-[var(--ink-soft)] cursor-not-allowed"
           }`}
           aria-label="Start security scan"
         >
@@ -71,7 +71,7 @@ export function OwnershipCheck({
         </button>
 
         {!canStart && !isScanning && (
-          <p className="text-center text-xs text-[#51627A] mt-2">
+          <p className="text-center text-xs text-[var(--ink-soft)] mt-2">
             {!hasValidUrl && !isChecked
               ? "Enter your website link in Step 1 and confirm ownership to start."
               : !hasValidUrl

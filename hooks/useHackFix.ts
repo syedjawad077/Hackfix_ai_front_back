@@ -10,7 +10,7 @@ import {
 } from "@/lib/types";
 import { initialSessions, sampleScanReport } from "@/lib/mock-data";
 import { apiClient } from "@/lib/api-client";
-import { getCurrentTimestamp, isValidUrl } from "@/lib/utils";
+import { getCurrentTimestamp, isValidUrl, normalizeUrl } from "@/lib/utils";
 
 export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "warning" | "error") => void) {
   const [sessions, setSessions] = useState<ChatSession[]>(initialSessions);
@@ -163,7 +163,8 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
   }, [activeSessionId, onToast]);
 
   // Execute scan execution logic
-  const executeScan = async (targetUrl: string, promptText?: string) => {
+  const executeScan = async (rawTargetUrl: string, promptText?: string) => {
+    const targetUrl = normalizeUrl(rawTargetUrl);
     setIsScanning(true);
     const time = getCurrentTimestamp();
 
@@ -209,9 +210,15 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
       setSessions((prev) =>
         prev.map((s) => {
           if (s.id === activeSessionId) {
+            let sessionTitle = targetUrl;
+            try {
+              sessionTitle = new URL(targetUrl).hostname || targetUrl;
+            } catch {
+              sessionTitle = targetUrl;
+            }
             return {
               ...s,
-              title: new URL(targetUrl).hostname || targetUrl,
+              title: sessionTitle,
               targetUrl,
               ownershipVerified: true,
               activeScanId: report.id,
@@ -233,15 +240,16 @@ export function useHackFix(onToast: (msg: string, type?: "info" | "success" | "w
 
   // Explicit start scan action
   const handleStartScan = (targetUrlOverride?: string) => {
-    const target = (targetUrlOverride || urlInput).trim();
-    if (!target) {
+    const rawTarget = (targetUrlOverride || urlInput).trim();
+    if (!rawTarget) {
       onToast("Please enter a website URL to scan (e.g. https://your-site.com)", "warning");
       return;
     }
-    if (!isValidUrl(target)) {
-      onToast("Please enter a valid website URL starting with https:// or http://", "error");
+    if (!isValidUrl(rawTarget)) {
+      onToast("Please enter a valid website URL or domain (e.g. https://your-site.com or your-site.com)", "error");
       return;
     }
+    const target = normalizeUrl(rawTarget);
     if (!activeSession?.ownershipVerified) {
       setPendingScanUrl(target);
       setOwnershipModalOpen(true);
